@@ -12,6 +12,8 @@
     },
     "dependencies": {
         "@vitejs/plugin-vue": "^4.4.1",
+        "ag-grid-community": "^30.2.1",
+        "ag-grid-vue3": "^30.2.1",
         "bootstrap": "^5.3.2",
         "vue-router": "^4.2.5"
     }
