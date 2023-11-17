@@ -146,7 +146,7 @@ import {mapKeys} from '@/composables/mapKeys.js';
                         const sheet = workbook.Sheets[sheetName];
 
                         // Convert the sheet data to an array of objects (each object represents a row)
-                        const template_details = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                        const template_details = XLSX.utils.sheet_to_json(sheet, { header: 1, rawNumbers: false, });
                         // this.rowData = template_details.slice(1);
                         this.rowData =  mapKeys(this.table_fields,template_details.slice(1));
                     } catch (error) {
