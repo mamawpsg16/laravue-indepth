@@ -51,7 +51,9 @@ import Modal from '@/components/Modal/modal.vue';
 import { AgGridVue } from "ag-grid-vue3";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import {mapKeys} from '@/composables/mapKeys.js';
+import { mapKeys } from '@/composables/import/mapKeys.js';
+import { checkEmptyColumns } from '@/composables/import/validation.js';
+import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
     export default {
         data(){
             return{
@@ -146,9 +148,26 @@ import {mapKeys} from '@/composables/mapKeys.js';
                         const sheet = workbook.Sheets[sheetName];
 
                         // Convert the sheet data to an array of objects (each object represents a row)
-                        const template_details = XLSX.utils.sheet_to_json(sheet, { header: 1, rawNumbers: false, });
+                        const template_details = XLSX.utils.sheet_to_json(sheet, { header: 1, rawNumbers: false,  defval:'' });
+                        // const template_details_with_defaults = template_details.map(row => {
+                        //     return row.map(cell => !cell ? console.log(row,'FUCK') : cell);
+                        // });
+
+                        // console.log(template_details_with_defaults,'template_details_with_defaults');
                         // this.rowData = template_details.slice(1);
-                        this.rowData =  mapKeys(this.table_fields,template_details.slice(1));
+                       const mappedData= mapKeys(this.table_fields,template_details.slice(1));
+                       const hasEmptyDetails = checkEmptyColumns(undefined, mappedData);
+                        if(hasEmptyDetails.length >0){
+                            swalError({
+                                icon: 'error',
+                                title: `${hasEmptyDetails.join('')} cannot be empty!`,
+                                text: "Kindly Check Template!",
+                                showConfirmButton: false,
+                            })
+
+                            return;
+                        }
+                        this.rowData = mappedData;
                     } catch (error) {
                         // Log an error if there's a problem reading the Excel file
                         console.error('Error reading the Excel file:', error);
