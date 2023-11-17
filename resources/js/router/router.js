@@ -14,7 +14,24 @@ const Posts = { template: '<div>Posts</div>' }
 // Each route should map to a component.
 // We'll talk about nested routes later.
 const routes = [
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/PageError/NotFound.vue')},
+  { 
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/PageError/NotFound.vue')
+  },
+  {
+    path:'/',
+    name:'home',
+    redirect:'/dashboard',
+    component:  Dashboard,
+   
+  },
+  {
+    path:'/dashboard',
+    name:'/dashboard',
+    component:  Dashboard,
+   
+  },
   {
     path:'/settings',
     component:() => import('@/views/Practice/NamedRouterView/UserSettings.vue'),
@@ -77,6 +94,22 @@ const routes = [
     name:'challenge-1',
     component: () => import('@/views/Practice/Challenge.vue')
   },
+  {
+    path: '/products',
+    name:'products',
+    component: () => import('@/views/Product/Index.vue')
+  },
+  {
+    path: '/register',
+    name:'register',
+    component: () => import('@/views/Authentication/Register.vue')
+  },
+  {
+    path: '/login',
+    name:'login',
+    component: () => import('@/views/Authentication/Login.vue')
+  },
+ 
   /** OPTIONAL PARAMETER ? */
   // { path: '/app/:id/:name?', component: Home },
   { path: '/about', component: About },

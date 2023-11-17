@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthenticationController;
+use App\Http\Controllers\Product\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,5 +17,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' =>['auth:sanctum']], function(){
-    
+    Route::get('/user', [AuthenticationController::class, 'tokenVerification'])->middleware('user.authenticated');
+    Route::resource('products', ProductController::class);
 });

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\App\AppController;
+use App\Http\Controllers\Auth\AuthenticationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,4 +17,6 @@ use App\Http\Controllers\App\AppController;
 
 
 
+Route::post('/register',[AuthenticationController::class,'register']);
+Route::post('/login',[AuthenticationController::class,'authenticate']);
 Route::get('/{any?}', AppController::class)->where('any', '[\/\w\.-]*');

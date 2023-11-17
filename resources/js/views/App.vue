@@ -1,20 +1,42 @@
 <template>
     <div>
-        <router-link to="/app">Home</router-link> ||
-        <router-link to="/settings">Named Route</router-link> ||
-        <router-link :to="{name:'challenge-1'}">Challenge 1</router-link> ||
-        <router-link :to="{name:'test-1'}">Test 1</router-link> ||
-        <router-link :to="{name:'test-2'}">Test 2</router-link> ||
-        <router-link to="/app/dashboard">Dashboard</router-link> ||
-        <router-link to="/app/posts">Posts</router-link> ||
-        <router-link to="/about">About</router-link> 
-        <router-view></router-view>
+        <!-- Navbar -->
+       <Navbar :authenticated="isAuthenticated"/>
+        <!-- Sidebar -->
+        <div class="container-fluid">
+            <div class="row">
+                <Sidebar/>
+                <!-- Main content area -->
+                <Main>
+                    <router-view></router-view>
+                </Main>
+                <Footer/>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+import Navbar from '../components/Layout/Navbar.vue';
+import Sidebar from '../components/Layout/Sidebar.vue';
+import Footer from '../components/Layout/Footer.vue';
+import Main from '../components/Layout/Main.vue';
+import { isUserAuthenticated  } from '../composables/authentication.js';
     export default {
-        
+        data(){
+            return{
+                isAuthenticated:false
+            }
+        },
+        components:{
+            Navbar,
+            Sidebar,
+            Footer,
+            Main
+        },
+        async created() {
+            this.isAuthenticated = await isUserAuthenticated();
+        }
     }
 </script>
 

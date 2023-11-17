@@ -1,6 +1,7 @@
 <template>
     <!-- <button :class="btnClass" @click="btnSubmit()"> -->
-    <button :class="btnClass" @click="$emit('emitValue','abc')">
+    <!-- <button :class="btnClass" @click="$emit('emitValue','abc')"> -->
+    <button :class="btnClass">
         <slot></slot>
     </button>
 </template>
@@ -15,9 +16,9 @@
             },
         },
         methods:{
-            btnSubmit(){
-                this.$emit('submitEvent','sheesh')
-            }
+            // btnSubmit(){
+            //     this.$emit('submitEvent','sheesh')
+            // }
         }
         
     }

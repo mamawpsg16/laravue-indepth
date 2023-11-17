@@ -7,6 +7,7 @@
      @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
+    <div id="modals"></div>
     <div id="app">
         {{-- <app-component></app-component> --}}
     </div>
