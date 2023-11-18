@@ -24,6 +24,7 @@ import Modal from '@/components/Modal/modal.vue';
 import { swalSuccess, swalError  } from '@/composables/sweetAlert.js';
 import axios from 'axios';
     export default {
+        name:'Login',
         data(){
             return{
                 name: null,
@@ -50,13 +51,9 @@ import axios from 'axios';
                             title: 'User logined successfully!',
                             showConfirmButton: false,
                         })
-                        this.email = null;
-                        this.password = null;
-                        
                         localStorage.setItem('auth-token', response.data.authentication_token);
                         
                         window.location.href = '/dashboard'
-
                     }
                 })
                 .catch(function (error) {

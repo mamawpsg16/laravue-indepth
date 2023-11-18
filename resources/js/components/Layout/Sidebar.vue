@@ -3,15 +3,14 @@
         <div class="position-sticky">
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
+                    <router-link to="/dashboard" class="nav-link"><i class="fa-solid fa-chart-line"></i> &nbsp;Dashboard</router-link>
                 </li>
                 <li class="nav-item">
-                    <router-link to="/products" class="nav-link">Products</router-link>
+                    <router-link to="/products" class="nav-link"><i class="fa-solid fa-basket-shopping"></i> &nbsp;Products</router-link>
                 </li>
                 <li class="nav-item">
-                    <router-link to="/settings" class="nav-link">Settings</router-link>
+                    <router-link to="/shops" class="nav-link"><i class="fa-solid fa-store"></i> &nbsp;Shops</router-link>
                 </li>
-                <!-- Add more sidebar items as needed -->
             </ul>
         </div>
     </nav>

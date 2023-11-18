@@ -36,6 +36,7 @@ import Modal from '@/components/Modal/modal.vue';
 import { swalSuccess, swalError  } from '@/composables/sweetAlert.js';
 import axios from 'axios';
     export default {
+        name:'Register',
         data(){
             return{
                 name: null,

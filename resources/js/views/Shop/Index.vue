@@ -1,65 +1,21 @@
 <template>
-    <!-- <Modal class="modal-xl" targetModal="import-product-modal" modaltitle="Import Product Details" :backdrop="true">
-        <template #body>
-            <form>
-                <div class="row">
-                    <div class="">
-                        <input class="form-control" type="file" id="formFile" @change="uploadImage" accept="image/png, image/jpeg">
-                    </div>
-                </div>
-            </form>
-        </template>
-        <template #footer>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" @click.prevent="saveProduct">Save changes</button>
-        </template>
-    </Modal> -->
-    <Import/>
-    <!-- <Modal class="modal-xl" targetModal="product-modal" modaltitle="Create">
-        <template #body>
-            <form>
-                <div class="d-flex flex-column mb-2">
-                    <div class="col-6 mx-auto text-center mb-2">
-                        <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:450px;" alt="">
-                    </div>
-                    <div class="col-4 mx-auto">
-                        <input class="form-control" type="file" id="formFile" @change="uploadImage" accept="image/png, image/jpeg">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6">
-                      <label for="exampleInputEmail1" class="form-label">Name</label>
-                      <input type="email" class="form-control" v-model="product.name" aria-describedby="emailHelp">
-                    </div>
-                    <div class="col-6 d-flex flex-column">
-                        <label for="exampleInputPassword1" class="form-label">Description</label>
-                        <textarea name="" rows="5" v-model="product.description" class="form-control"></textarea>
-                    </div>
-                </div>
-            </form>
-        </template>
-        <template #footer>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" @click.prevent="saveProduct">Save changes</button>
-        </template>
-    </Modal> -->
+    <!-- <Import/> -->
+    <Create @addRow="addData"/>
+    <Edit @updateRow="updateData" :details="editDetails"/>
+   
     <div class="row">
-  
         <div class="col-10 mx-auto my-2">
             <!-- <label for="isExportAll">Export All</label> &nbsp; -->
             <!-- <input type="checkbox" v-model="isExportAll" id="isExportAll"> -->
             <!-- <br> -->
+            <div class="text-end mb-2 ">
                 <!-- <button @click="addData">Add Dummy Data</button> -->
-            <div class="d-flex justify-content-between mb-2">
-                <div id="export">
-                    <button class="btn btn-secondary me-2" @click="exportCsv">Export Csv</button>
-                    <button class="btn btn-secondary me-2" @click="exportExcel">Export Excel</button>
-                </div>
-                <div id="import">
-                    <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-product-modal">
+                <div class="space-x-2">
+                    <button class="btn me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length">Export CSV</button>
+                    <!-- <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-shop-modal">
                         Import
-                    </button>
-                    <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#product-modal">
+                    </button> -->
+                    <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#create-shop-modal">
                         Create
                     </button>
                 </div>
@@ -95,19 +51,21 @@
 </template>
 
 <script>
+import Create from './Create.vue';
+import Edit from './Edit.vue';
 import defaultOptions from '@/composables/gridTableDefaultOptions.js';
 import image1 from '../../../assets/images/1.png'
-import actionButton from '@/components/AgGridTable/action.vue';
+import actionButton from './components/ActionButton.vue';
 import Modal from '@/components/Modal/modal.vue';
 import { AgGridVue } from "ag-grid-vue3";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import Import from './components/Import.vue';
-import Export from '@/composables/export/index.js';
+import Import from './Create.vue';
 import axios from 'axios';
-const authToken = {'Authorization': `Bearer Token`};
+import { swalSuccess, swalError, Swal } from '@/composables/sweetAlert.js';
+const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
     export default {
-        name:'ProductIndex',
+        name:'ShopIndex',
         data(){
             return{
                 
@@ -116,29 +74,15 @@ const authToken = {'Authorization': `Bearer Token`};
                 pageSizeOptions: [10, 100, 500, 1000],
                 paginationNumberFormatter: null,
                 columnDefs: [
-                    { headerName: "Make", field: "make", unSortIcon:true },
-                    { headerName: "Model", field: "model", unSortIcon:true },
-                    { headerName: "Price", field: "price", unSortIcon:true },
+                    { headerName: "Name", field: "name", unSortIcon:true },
+                    { headerName: "Description", field: "description", unSortIcon:true },
                     {
                         headerName: "Action",
                         cellRenderer: "actionButton",
                     }
                     
                 ],
-                rowData: [
-                    { id:1, make: "Toyota", model: "Celica", price: 1000, },
-                    { id:2, make: "Ford", model: "Mondeo", price: 2000 },
-                    { id:3, make: "Porsche", model: "Porsche A", price: 2100 },
-                    { id:4, make: "Buggati", model: "Buggati A", price: 3500 },
-                    { id:5, make: "Vios", model: "Vios A", price: 6000 },
-                    { id:6,  make: "BMW", model: "BMW A", price: 500 },
-                    { id:7, make: "GTR", model: "GTR A", price: 777 },
-                    { id:8, make: "Honda", model: "Honda A", price: 666 },
-                    { id:9, make: "Grandia", model: "Grandia A", price: 7000 },
-                    { id:10,make: "Fortuner", model: "Fortuner B", price: 5432 },
-                    { id:11,make: "Hi-Ace", model: "Ace B", price: 8900 },
-                    { id:12,make: "Shiza", model: "Shiza A", price: 5000 },
-                ],
+                rowData: [],
                 defaultColDef: {
                   ...defaultOptions
                 },
@@ -151,12 +95,16 @@ const authToken = {'Authorization': `Bearer Token`};
                 },
                 file:null,
                 image: image1,
+                editDetails:[]
             }
         },
         components: {
             AgGridVue,
             actionButton,
-            Import
+            Import,
+            Modal,
+            Create,
+            Edit
         },
         computed:{
             globalSearchValue(){
@@ -164,7 +112,7 @@ const authToken = {'Authorization': `Bearer Token`};
             }
         },
         async created(){
-            await this.getProducts();
+            await this.getShops();
             this.paginationNumberFormatter = (params) => {
                 return '[' + params.value.toLocaleString() + ']';
             };
@@ -172,12 +120,16 @@ const authToken = {'Authorization': `Bearer Token`};
             
         },
         methods:{
-            async getProducts(){
-                await axios.get('/api/products',{
+            async getShops(){
+                await axios.get('/api/shops',{
                     headers:{
-                        authToken
+                        'Authorization': auth_token
                     }
                 }).then(response =>{
+                    if(response.data?.status == 200){
+                        console.log(response.data)
+                        this.rowData = response.data.shops;
+                    }
 
                 }).catch(response=>{
 
@@ -195,21 +147,86 @@ const authToken = {'Authorization': `Bearer Token`};
                 this.gridColumnApi = params.columnApi;
                 this.gridApi.paginationSetPageSize(Number(this.pageSize));
             },
-            getRowData(data){
-                console.log(data,'fuckkkk');
+            visitShop(data){
+                console.log(data,'Visit');
+            },
+            editShop(data){
+                console.log(data,'Edit');
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('edit-shop-modal'));
+
+                this.editDetails = data;
+                // Show the modal
+                modal.show();
+
+            },
+            deleteShop(id){
+                axios.delete(`/api/shops/${id}`,
+                { 
+                    headers:{
+                        'Authorization': auth_token
+                    }
+                })
+                .then(response =>{
+                    if(response.data?.status == 200){
+                        this.rowData = this.rowData.filter(item => item.id != id);  
+                        swalSuccess({ 
+                            icon: 'success',
+                            text: 'Shop deleted',
+                            title: response.data?.message,
+                            showConfirmButton: false,
+                        })
+                    }
+                }).catch(error =>{
+                    if(error.response?.data?.errors){
+                        swalError({
+                            icon: 'error',
+                            title: error.response?.data.message,
+                            text: "Something went wrong!",
+                            showConfirmButton: false,
+                        })
+                    }
+                })
+            },
+            deleteConfirmation(data){
+                console.log(data);
+                Swal.fire({
+                    title: "Are you sure?",
+                    text:"Delete Shop",
+                    showCancelButton: true,
+                    confirmButtonText: "Confirm",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.deleteShop(data.id)
+                    } else if (result.isDenied) {
+                        Swal.fire("Changes are not saved", "", "info");
+                    }
+                });
             },
             exportCsv() {
-                this.gridApi.exportDataAsCsv({columnKeys:['make','model','price']});
+                this.gridApi.exportDataAsCsv({columnKeys:['name','description']});
             },
-            exportExcel() {
-                const data = this.rowData.map(({ id, ...rest}) => rest);
-                Export(data);
+            exportExcel(){
+                const worksheet = XLSX.utils.json_to_sheet(rows);
             },
-            addData(){
+            addData(payload){
                 this.rowData = [
+                    payload,
                     ...this.rowData,
-                    { id: 12, make: "Dummy", model: "Dummy A", price: 6666 }
                 ];
+            },
+            updateData(payload){
+                  try {
+                    const index = this.rowData.findIndex(item => item.id === payload.id);
+
+                    // Create a copy of the array and update the specific element
+                    const updatedRowData = [...this.rowData];
+                    updatedRowData[index] = { ...payload };
+
+                    // Update the original array
+                    this.rowData = updatedRowData;
+                } catch (error) {
+                    console.error('Error updating data:', error);
+                }
             },
             uploadImage(e){
                 // e.preventDefault()
@@ -232,7 +249,7 @@ const authToken = {'Authorization': `Bearer Token`};
                 formData.append('product',this.product);
                 axios.post('/api/product',formData,{
                     headers:{
-                        authToken
+                        auth_token
                     }
                 })
                 .then(function (response) {

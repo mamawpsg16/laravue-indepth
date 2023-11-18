@@ -2,23 +2,28 @@
     <Modal class="modal-xl" targetModal="import-product-modal" modaltitle="Import Product Details" :backdrop="true" :escKey="false">
         <template #body>
             <form id="import">
-                <div class="row mb-4">
-                    <div class="col-12 d-flex flex-column">
-                        <label for="formFile">Upload Template</label>
-                        <input class="form-control" type="file" id="formFile" @change="uploadTemplate" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                <div class="row d-flex justify-content-between align-items-center mb-4">
+                    <label for="formFile">Upload Template</label>
+                    <div class="col-9">
+                            <input class="form-control" type="file" id="formFile" @change="uploadTemplate" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                    </div>
+                    <div class="col-3">
+                          <button type="button" class="btn btn-sm  form-control" :class="{'btn-danger' : rowData.length >0, 'btn-secondary' : !rowData.length}" :disabled="!rowData.length" @click.prevent="cancelUpload">Cancel</button>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="d-flex justify-content-between" @submitEvent="getDetails">
-                        <div id="pageSizeContainer">
-                            Page Size: 
-                            <select v-model="pageSize" @change="onPageSizeChanged">
-                                <option :value="size" v-for="size in pageSizeOptions">{{ size }}</option>
-                            </select>
-                        </div>
-                        <div id="quickFilterContainer">
-                            <span>Quick Filter: </span>
-                            <input type="text" v-model="globalSearchFilter" placeholder="Filter..." @input="onGlobalSearch">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between" @submitEvent="getDetails">
+                            <div id="pageSizeContainer">
+                                <label for="">Page Size: </label>
+                                <select v-model="pageSize" @change="onPageSizeChanged"  class="form-control ">
+                                    <option :value="size" v-for="(size, index) in pageSizeOptions" :key="index">{{ size }}</option>
+                                </select>
+                            </div>
+                            <div id="quickFilterContainer">
+                                <label for="">Quick Filter: </label>
+                                <input type="text" v-model="globalSearchFilter" class="form-control" placeholder="Filter..." @input="onGlobalSearch">
+                            </div>
                         </div>
                     </div>
                     <ag-grid-vue
@@ -37,7 +42,7 @@
             </form>
         </template>
         <template #footer>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="closeModal">Close</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelUpload">Close</button>
             <button type="button" class="btn btn-primary" @click.prevent="saveProduct">Upload</button>
         </template>
     </Modal>
@@ -45,7 +50,7 @@
 
 <script>
 import defaultOptions from '@/composables/gridTableDefaultOptions.js';
-import * as XLSX from 'xlsx';
+import importData  from '@/composables/import/index.js';
 import actionButton from '@/components/AgGridTable/action.vue';
 import Modal from '@/components/Modal/modal.vue';
 import { AgGridVue } from "ag-grid-vue3";
@@ -55,10 +60,11 @@ import { mapKeys } from '@/composables/import/mapKeys.js';
 import { checkEmptyColumns } from '@/composables/import/validation.js';
 import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
     export default {
+        name:'ImportProduct',
         data(){
             return{
                 
-                pageSize:10,
+                pageSize:100,
                 isExportAll:false,
                 pageSizeOptions: [10, 100, 500, 1000],
                 paginationNumberFormatter: null,
@@ -137,25 +143,11 @@ import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
                 reader.onload = (event) => {
                     // Extract the binary data from the FileReader result
                     const data = event.target.result;
-                    console.log(data, 'data');
-
                     try {
-                        // Attempt to read the binary data as an Excel workbook using Sheet.js (XLSX)
-                        const workbook = XLSX.read(data, { type: 'binary' });
-
-                        // Get the first sheet in the workbook (you might need to adjust this based on your specific case)
-                        const sheetName = workbook.SheetNames[0];
-                        const sheet = workbook.Sheets[sheetName];
-
-                        // Convert the sheet data to an array of objects (each object represents a row)
-                        const template_details = XLSX.utils.sheet_to_json(sheet, { header: 1, rawNumbers: false,  defval:'' });
-                        // const template_details_with_defaults = template_details.map(row => {
-                        //     return row.map(cell => !cell ? console.log(row,'FUCK') : cell);
-                        // });
-
-                        // console.log(template_details_with_defaults,'template_details_with_defaults');
-                        // this.rowData = template_details.slice(1);
+                        const template_details = importData(data);
+                       
                        const mappedData= mapKeys(this.table_fields,template_details.slice(1));
+
                        const hasEmptyDetails = checkEmptyColumns(undefined, mappedData);
                         if(hasEmptyDetails.length >0){
                             swalError({
@@ -183,7 +175,7 @@ import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
                 // Read the contents of the selected file as binary data
                 reader.readAsBinaryString(file);
             },
-            closeModal(){
+            cancelUpload(){
                 this.resetForm();
             }
         },
