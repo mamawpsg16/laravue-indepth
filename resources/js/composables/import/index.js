@@ -12,6 +12,7 @@ export default function importData(data = []) {
         header: 1,
         rawNumbers: false,
         defval: "",
+        blankrows:false
     });
 
     return template_details;

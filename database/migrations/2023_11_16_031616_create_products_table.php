@@ -15,10 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->text('description')->nullable();
+            $table->decimal('price', 10, 2)->default('0.00');
+            $table->integer('quantity')->nullable()->default(0);
             $table->foreignId('category_id')->nullable()->constrained();
             $table->foreignId('brand_id')->nullable()->constrained();
             $table->foreignId('shop_id')->nullable()->constrained();
-            $table->string('image_url')->nullable();
+            $table->string('image_name')->nullable();
+            $table->string('image')->nullable();
             $table->timestamps();
             // Add other product columns as needed
         });

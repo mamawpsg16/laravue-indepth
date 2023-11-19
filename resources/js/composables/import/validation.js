@@ -7,7 +7,6 @@ export function checkEmptyColumns(except= [], data){
         for (const property in data[key]) {
             if(except.length > 0){
                 for (const exclude of except) {
-                    console.log('checkEmptyColumns property', key, property);
                     if (property != exclude) {
                         if(data[property] === '' || data[property] == null || data[property] == undefined){
                             empty_column.push(data[property]) 

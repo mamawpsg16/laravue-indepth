@@ -43,7 +43,7 @@
         </template>
         <template #footer>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelUpload">Close</button>
-            <button type="button" class="btn btn-primary" @click.prevent="saveProduct">Upload</button>
+            <button type="button" class="btn btn-primary" @click.prevent="uploadDetails">Upload</button>
         </template>
     </Modal>
 </template>
@@ -59,6 +59,8 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { mapKeys } from '@/composables/import/mapKeys.js';
 import { checkEmptyColumns } from '@/composables/import/validation.js';
 import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
+import axios from 'axios';
+const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
         name:'ImportProduct',
         data(){
@@ -68,14 +70,12 @@ import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
                 isExportAll:false,
                 pageSizeOptions: [10, 100, 500, 1000],
                 paginationNumberFormatter: null,
-                table_fields:['year','customer_code','customer_name','owner_name','email','mobile'],
+                table_fields:['name','price','quantity','description'],
                 columnDefs: [
-                    { headerName: "Year", field: "year", unSortIcon:true },
-                    { headerName: "Customer Code", field: "customer_code", unSortIcon:true },
-                    { headerName: "Customer Name", field: "customer_name", unSortIcon:true },
-                    { headerName: "Owner Name", field: "owner_name", unSortIcon:true },
-                    { headerName: "Email", field: "email", unSortIcon:true },
-                    { headerName: "Mobile", field: "mobile", unSortIcon:true },
+                    { headerName: "Name", field: "name", unSortIcon:true },
+                    { headerName: "Price", field: "price", unSortIcon:true },
+                    { headerName: "Quantity", field: "quantity", unSortIcon:true },
+                    { headerName: "Description", field: "description", unSortIcon:true },
                     // {
                     //     headerName: "Action",
                     //     cellRenderer: "actionButton",
@@ -143,12 +143,16 @@ import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
                 reader.onload = (event) => {
                     // Extract the binary data from the FileReader result
                     const data = event.target.result;
+                    console.log(data,'data')
                     try {
                         const template_details = importData(data);
                        
+                        console.log(template_details,'data')
                        const mappedData= mapKeys(this.table_fields,template_details.slice(1));
 
+                        console.log(mappedData,'mappedData')
                        const hasEmptyDetails = checkEmptyColumns(undefined, mappedData);
+                       console.log(hasEmptyDetails,'hasEmptyDetails')
                         if(hasEmptyDetails.length >0){
                             swalError({
                                 icon: 'error',
@@ -174,6 +178,23 @@ import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
 
                 // Read the contents of the selected file as binary data
                 reader.readAsBinaryString(file);
+            },
+            uploadDetails(){
+                // Convert data to CSV format
+                const csvContent = this.rowData.map(row =>{
+                    return Object.values(row).join('\t');
+                }).join('\n');
+          
+                
+                // Create a Blob containing the CSV data
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const formData = new FormData();
+                formData.append('csv',blob);
+                axios.post('/api/importProducts',formData,{
+                    headers:{
+                        'Authorization': auth_token
+                    }
+                })
             },
             cancelUpload(){
                 this.resetForm();

@@ -1,50 +1,7 @@
 <template>
-    <!-- <Modal class="modal-xl" targetModal="import-product-modal" modaltitle="Import Product Details" :backdrop="true">
-        <template #body>
-            <form>
-                <div class="row">
-                    <div class="">
-                        <input class="form-control" type="file" id="formFile" @change="uploadImage" accept="image/png, image/jpeg">
-                    </div>
-                </div>
-            </form>
-        </template>
-        <template #footer>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" @click.prevent="saveProduct">Save changes</button>
-        </template>
-    </Modal> -->
     <Import/>
-    <!-- <Modal class="modal-xl" targetModal="product-modal" modaltitle="Create">
-        <template #body>
-            <form>
-                <div class="d-flex flex-column mb-2">
-                    <div class="col-6 mx-auto text-center mb-2">
-                        <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:450px;" alt="">
-                    </div>
-                    <div class="col-4 mx-auto">
-                        <input class="form-control" type="file" id="formFile" @change="uploadImage" accept="image/png, image/jpeg">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6">
-                      <label for="exampleInputEmail1" class="form-label">Name</label>
-                      <input type="email" class="form-control" v-model="product.name" aria-describedby="emailHelp">
-                    </div>
-                    <div class="col-6 d-flex flex-column">
-                        <label for="exampleInputPassword1" class="form-label">Description</label>
-                        <textarea name="" rows="5" v-model="product.description" class="form-control"></textarea>
-                    </div>
-                </div>
-            </form>
-        </template>
-        <template #footer>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" @click.prevent="saveProduct">Save changes</button>
-        </template>
-    </Modal> -->
+    <Create/>
     <div class="row">
-  
         <div class="col-10 mx-auto my-2">
             <!-- <label for="isExportAll">Export All</label> &nbsp; -->
             <!-- <input type="checkbox" v-model="isExportAll" id="isExportAll"> -->
@@ -59,7 +16,7 @@
                     <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-product-modal">
                         Import
                     </button>
-                    <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#product-modal">
+                    <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#create-product-modal">
                         Create
                     </button>
                 </div>
@@ -98,6 +55,7 @@
 import defaultOptions from '@/composables/gridTableDefaultOptions.js';
 import image1 from '../../../assets/images/1.png'
 import actionButton from '@/components/AgGridTable/action.vue';
+// import image from './components/Image.vue';
 import Modal from '@/components/Modal/modal.vue';
 import { AgGridVue } from "ag-grid-vue3";
 import "ag-grid-community/styles/ag-grid.css";
@@ -105,58 +63,48 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import Import from './components/Import.vue';
 import Export from '@/composables/export/index.js';
 import axios from 'axios';
-const authToken = {'Authorization': `Bearer Token`};
+import Create from './Create.vue';
+const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
         name:'ProductIndex',
         data(){
             return{
-                
                 pageSize:10,
                 isExportAll:false,
                 pageSizeOptions: [10, 100, 500, 1000],
                 paginationNumberFormatter: null,
                 columnDefs: [
-                    { headerName: "Make", field: "make", unSortIcon:true },
-                    { headerName: "Model", field: "model", unSortIcon:true },
-                    { headerName: "Price", field: "price", unSortIcon:true },
+                //    {
+                //         headerName: "Image",
+                //         cellRenderer: "image",
+                //     },
+                    { headerName: "Name", field: "name", unSortIcon:true},
+                    { headerName: "Price", field: "price", unSortIcon:true},
+                    { headerName: "Quantity", field: "quantity", unSortIcon:true },
+                    { headerName: "Created At", field: "created_at", unSortIcon:true },
+                    { headerName: "Status", field: "status", unSortIcon:true },
                     {
                         headerName: "Action",
                         cellRenderer: "actionButton",
                     }
                     
                 ],
-                rowData: [
-                    { id:1, make: "Toyota", model: "Celica", price: 1000, },
-                    { id:2, make: "Ford", model: "Mondeo", price: 2000 },
-                    { id:3, make: "Porsche", model: "Porsche A", price: 2100 },
-                    { id:4, make: "Buggati", model: "Buggati A", price: 3500 },
-                    { id:5, make: "Vios", model: "Vios A", price: 6000 },
-                    { id:6,  make: "BMW", model: "BMW A", price: 500 },
-                    { id:7, make: "GTR", model: "GTR A", price: 777 },
-                    { id:8, make: "Honda", model: "Honda A", price: 666 },
-                    { id:9, make: "Grandia", model: "Grandia A", price: 7000 },
-                    { id:10,make: "Fortuner", model: "Fortuner B", price: 5432 },
-                    { id:11,make: "Hi-Ace", model: "Ace B", price: 8900 },
-                    { id:12,make: "Shiza", model: "Shiza A", price: 5000 },
-                ],
+                rowData: [],
                 defaultColDef: {
                   ...defaultOptions
                 },
                 gridApi:null,
                 gridColumnApi:null,
                 globalSearchFilter:null,
-                product:{
-                    name :null,
-                    description :null,
-                },
-                file:null,
-                image: image1,
             }
         },
         components: {
             AgGridVue,
             actionButton,
-            Import
+            Import,
+            Modal,
+            Create,
+            // image
         },
         computed:{
             globalSearchValue(){
@@ -175,10 +123,12 @@ const authToken = {'Authorization': `Bearer Token`};
             async getProducts(){
                 await axios.get('/api/products',{
                     headers:{
-                        authToken
+                        'Authorization': auth_token
                     }
                 }).then(response =>{
-
+                    if(response.data?.status == 200){
+                        this.rowData = response.data?.products;
+                    }
                 }).catch(response=>{
 
                 })
@@ -205,43 +155,17 @@ const authToken = {'Authorization': `Bearer Token`};
                 const data = this.rowData.map(({ id, ...rest}) => rest);
                 Export(data);
             },
+            create(){
+                // const modalId = document.getElementById('product-modal');
+                // const modal = bootstrap.Modal.getOrCreateInstance(modalId)
+                // modal.show()
+            },
             addData(){
                 this.rowData = [
                     ...this.rowData,
                     { id: 12, make: "Dummy", model: "Dummy A", price: 6666 }
                 ];
             },
-            uploadImage(e){
-                // e.preventDefault()
-                const file = event.target.files[0];
-                this.file = file;
-                if (file) {
-                    // Use FileReader to read the file as a data URL
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        this.image = reader.result; // Set the imageUrl to the data URL
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    this.image = this.image1; // Reset imageUrl if no file is selected
-                }
-            },
-            saveProduct(){
-                const formData = new FormData();
-                formData.append('image',this.file);
-                formData.append('product',this.product);
-                axios.post('/api/product',formData,{
-                    headers:{
-                        authToken
-                    }
-                })
-                .then(function (response) {
-                    console.log(response);
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
-            }
         },
         beforeMount() {
             this.context = {

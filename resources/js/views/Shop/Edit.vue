@@ -94,7 +94,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 this.description = null;
             },
             closeModal(){
-                this.resetForm();
+                // this.resetForm();
                 const modal =  bootstrap.Modal.getOrCreateInstance(document.getElementById('edit-shop-modal'));
 
                 // Hide the modal
@@ -103,8 +103,10 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
         },
         watch: {
             details(updatedDetails) {
-                this.name = updatedDetails.name
-                this.description = updatedDetails.description
+                if(updatedDetails){
+                    this.name = updatedDetails.name
+                    this.description = updatedDetails.description
+                }
             }
         },
     }

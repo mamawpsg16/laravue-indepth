@@ -34,8 +34,9 @@
                    </div>
                </div>
                <ag-grid-vue
-                   style="width: 100%; height:519px;"
+                   domLayout="autoHeight"
                    class="ag-theme-alpine container mt-2"
+                   animateRows="true"
                    :columnDefs="columnDefs"
                    :rowData="rowData"
                    :defaultColDef="defaultColDef"
@@ -60,7 +61,7 @@ import Modal from '@/components/Modal/modal.vue';
 import { AgGridVue } from "ag-grid-vue3";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import Import from './Create.vue';
+import { formatDate, formatNumber } from '@/composables/helpers/index.js';
 import axios from 'axios';
 import { swalSuccess, swalError, Swal } from '@/composables/sweetAlert.js';
 const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
@@ -74,8 +75,10 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 pageSizeOptions: [10, 100, 500, 1000],
                 paginationNumberFormatter: null,
                 columnDefs: [
-                    { headerName: "Name", field: "name", unSortIcon:true },
+                    { headerName: "Name", field: "name", unSortIcon:true},
                     { headerName: "Description", field: "description", unSortIcon:true },
+                    { headerName: "Created At", field: "created_at", unSortIcon:true },
+                    { headerName: "Status", field: "status", unSortIcon:true },
                     {
                         headerName: "Action",
                         cellRenderer: "actionButton",
@@ -101,7 +104,6 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
         components: {
             AgGridVue,
             actionButton,
-            Import,
             Modal,
             Create,
             Edit
@@ -112,10 +114,10 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             }
         },
         async created(){
-            await this.getShops();
             this.paginationNumberFormatter = (params) => {
                 return '[' + params.value.toLocaleString() + ']';
             };
+            await this.getShops();
 
             
         },
@@ -127,8 +129,12 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     }
                 }).then(response =>{
                     if(response.data?.status == 200){
-                        console.log(response.data)
-                        this.rowData = response.data.shops;
+                        console.log(response,'response')
+                       this.rowData = response.data.shops.map(shop => ({
+                                                            ...shop,
+                                                            created_at: formatDate(undefined,shop.created_at,'timestamp'),
+                                                            status: shop.active === 1 ? 'Active' : 'Inactive'
+                                                        }));
                     }
 
                 }).catch(response=>{
@@ -142,7 +148,6 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 this.gridApi.setQuickFilter(this.globalSearchValue);
             },
             onGridReady(params) {
-                console.log(params,'PARAMS')
                 this.gridApi = params.api;
                 this.gridColumnApi = params.columnApi;
                 this.gridApi.paginationSetPageSize(Number(this.pageSize));
@@ -151,7 +156,6 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 console.log(data,'Visit');
             },
             editShop(data){
-                console.log(data,'Edit');
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('edit-shop-modal'));
 
                 this.editDetails = data;
