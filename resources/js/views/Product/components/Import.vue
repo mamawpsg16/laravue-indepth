@@ -30,6 +30,7 @@
                        style="width: 100%; height:519px;"
                        class="ag-theme-alpine container mt-2"
                        :columnDefs="columnDefs"
+                       :rowHeight="rowHeight"
                        :rowData="rowData"
                        :defaultColDef="defaultColDef"
                        :context="context" 
@@ -43,7 +44,7 @@
         </template>
         <template #footer>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelUpload">Close</button>
-            <button type="button" class="btn btn-primary" @click.prevent="uploadDetails">Upload</button>
+            <button type="button" class="btn" @click.prevent="uploadDetails" :class="{'btn-primary' : rowData.length >0, 'btn-secondary' : !rowData.length}" :disabled="!rowData.length">Upload</button>
         </template>
     </Modal>
 </template>
@@ -65,7 +66,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
         name:'ImportProduct',
         data(){
             return{
-                
+                rowHeight:50,
                 pageSize:100,
                 isExportAll:false,
                 pageSizeOptions: [10, 100, 500, 1000],
@@ -119,6 +120,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 this.gridApi = params.api;
                 this.gridColumnApi = params.columnApi;
                 this.gridApi.paginationSetPageSize(Number(this.pageSize));
+                this.gridApi.sizeColumnsToFit()
             },
             resetForm() {
                 this.rowData = [];
@@ -180,6 +182,9 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 reader.readAsBinaryString(file);
             },
             uploadDetails(){
+                if(!this.rowData.length){
+                    return;
+                }
                 // Convert data to CSV format
                 const csvContent = this.rowData.map(row =>{
                     return Object.values(row).join('\t');
@@ -189,11 +194,23 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 // Create a Blob containing the CSV data
                 const blob = new Blob([csvContent], { type: 'text/csv' });
                 const formData = new FormData();
-                formData.append('csv',blob);
+                formData.append('csv',blob,"insert_data.csv");
                 axios.post('/api/importProducts',formData,{
                     headers:{
                         'Authorization': auth_token
                     }
+                }).then(response =>{
+                    this.resetForm();
+                    this.$emit('addRow','import');
+                    swalSuccess({ 
+                        icon: 'success',
+                        text: 'Products Uploaded!',
+                        title: response.data?.message,
+                        showConfirmButton: false,
+                    })
+                    
+                }).catch(error =>{
+                    
                 })
             },
             cancelUpload(){

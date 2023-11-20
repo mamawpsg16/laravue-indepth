@@ -1,6 +1,7 @@
 <template>
-    <Import/>
-    <Create/>
+    <Import @addRow="addData"/>
+    <Create @addRow="addData"/>
+    <Show :details="product_details" @updateRow="updateData"/>
     <div class="row">
         <div class="col-10 mx-auto my-2">
             <!-- <label for="isExportAll">Export All</label> &nbsp; -->
@@ -9,8 +10,8 @@
                 <!-- <button @click="addData">Add Dummy Data</button> -->
             <div class="d-flex justify-content-between mb-2">
                 <div id="export">
-                    <button class="btn btn-secondary me-2" @click="exportCsv">Export Csv</button>
-                    <button class="btn btn-secondary me-2" @click="exportExcel">Export Excel</button>
+                    <button class="btn btn-secondary me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Csv</button>
+                    <button class="btn btn-secondary me-2" @click="exportExcel" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Excel</button>
                 </div>
                 <div id="import">
                     <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-product-modal">
@@ -36,13 +37,14 @@
                </div>
                <ag-grid-vue
                    style="width: 100%; height:519px;"
-                   class="ag-theme-alpine container mt-2"
+                   class="ag-theme-alpine mt-2"
                    :columnDefs="columnDefs"
                    :rowData="rowData"
                    :defaultColDef="defaultColDef"
                    :context="context" 
                    :paginationNumberFormatter="paginationNumberFormatter"
                    @grid-ready="onGridReady"
+                   :rowHeight="rowHeight"
                    :pagination="true"
                >
                </ag-grid-vue>
@@ -53,9 +55,7 @@
 
 <script>
 import defaultOptions from '@/composables/gridTableDefaultOptions.js';
-import image1 from '../../../assets/images/1.png'
-import actionButton from '@/components/AgGridTable/action.vue';
-// import image from './components/Image.vue';
+import actionButton from './components/ActionButton.vue';
 import Modal from '@/components/Modal/modal.vue';
 import { AgGridVue } from "ag-grid-vue3";
 import "ag-grid-community/styles/ag-grid.css";
@@ -64,11 +64,15 @@ import Import from './components/Import.vue';
 import Export from '@/composables/export/index.js';
 import axios from 'axios';
 import Create from './Create.vue';
+import Show from './Show.vue';
+import { formatDate } from '@/composables/helpers/index.js';
+import { swalSuccess, swalError, Swal } from '@/composables/sweetAlert.js';
 const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
         name:'ProductIndex',
         data(){
             return{
+                rowHeight:50,
                 pageSize:10,
                 isExportAll:false,
                 pageSizeOptions: [10, 100, 500, 1000],
@@ -96,6 +100,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 gridApi:null,
                 gridColumnApi:null,
                 globalSearchFilter:null,
+                product_details:null
             }
         },
         components: {
@@ -104,6 +109,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             Import,
             Modal,
             Create,
+            Show
             // image
         },
         computed:{
@@ -127,7 +133,12 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                     }
                 }).then(response =>{
                     if(response.data?.status == 200){
-                        this.rowData = response.data?.products;
+                        console.log(response.data?.products,'response.data?.products')
+                        this.rowData = response.data?.products.map(product => ({
+                                                            ...product,
+                                                            created_at: formatDate(undefined,product.created_at,'timestamp'),
+                                                            status: product.active === 1 ? 'Active' : 'Inactive'
+                                                        }));
                     }
                 }).catch(response=>{
 
@@ -144,6 +155,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 this.gridApi = params.api;
                 this.gridColumnApi = params.columnApi;
                 this.gridApi.paginationSetPageSize(Number(this.pageSize));
+                this.gridApi.sizeColumnsToFit()
             },
             getRowData(data){
                 console.log(data,'fuckkkk');
@@ -155,17 +167,91 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 const data = this.rowData.map(({ id, ...rest}) => rest);
                 Export(data);
             },
-            create(){
-                // const modalId = document.getElementById('product-modal');
-                // const modal = bootstrap.Modal.getOrCreateInstance(modalId)
-                // modal.show()
+            addData(payload){
+                if(payload == 'import'){
+                    this.getProducts();
+                }else{
+                    console.log(payload,'PAYLOAD')
+                    console.log([
+                        payload,
+                        ...this.rowData,
+                    ],'SHEESH')
+                    const updateData = this.rowData = [
+                        payload,
+                        ...this.rowData,
+                    ];
+                    
+                     this.rowData = updateData.map(product => ({
+                                                                ...product,
+                                                                created_at: formatDate(undefined,product.created_at,'timestamp'),
+                                                                status: product.active === 1 ? 'Active' : 'Inactive'
+                                                            }));
+                }
+          
             },
-            addData(){
-                this.rowData = [
-                    ...this.rowData,
-                    { id: 12, make: "Dummy", model: "Dummy A", price: 6666 }
-                ];
+            showProduct(params){
+                const id = document.getElementById('show-product-modal');
+                const modal = bootstrap.Modal.getOrCreateInstance(id);
+                this.product_details = params;
+                modal.show();
             },
+            deleteShop(id){
+                axios.delete(`/api/products/${id}`,
+                { 
+                    headers:{
+                        'Authorization': auth_token
+                    }
+                })
+                .then(response =>{
+                    if(response.data?.status == 200){
+                        this.rowData = this.rowData.filter(item => item.id != id);  
+                        swalSuccess({ 
+                            icon: 'success',
+                            text: 'Product deleted',
+                            title: response.data?.message,
+                            showConfirmButton: false,
+                        })
+                    }
+                }).catch(error =>{
+                    if(error.response?.data?.errors){
+                        swalError({
+                            icon: 'error',
+                            title: error.response?.data.message,
+                            text: "Something went wrong!",
+                            showConfirmButton: false,
+                        })
+                    }
+                })
+            },
+            deleteConfirmation(data){
+                Swal.fire({
+                    title: "Are you sure?",
+                    text:"Delete Product",
+                    showCancelButton: true,
+                    confirmButtonText: "Confirm",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.deleteShop(data.id)
+                    } else if (result.isDenied) {
+                        Swal.fire("Changes are not saved", "", "info");
+                    }
+                });
+            },
+            updateData(payload){
+                const index = this.rowData.findIndex(data => data.id === payload.id);
+                // Create a copy of the array and update the specific element
+                const updatedRowData = [...this.rowData];
+                
+                updatedRowData[index] = {
+                        ...payload,
+                        created_at: formatDate(undefined,payload.created_at,'timestamp'),
+                        status: payload.active === 1 ? 'Active' : 'Inactive'
+                    };
+
+                // Update the original array
+                this.rowData = updatedRowData;
+            }
+
         },
         beforeMount() {
             this.context = {

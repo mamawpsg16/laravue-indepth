@@ -1,15 +1,15 @@
 <template>
-     <Modal class="modal-xl" targetModal="create-shop-modal" modaltitle="Shop Details" :backdrop="true" :escKey="false">
+     <Modal class="modal-lg" targetModal="create-shop-modal" modaltitle="Create - Shop Details" :backdrop="true" :escKey="false">
         <template #body>
             <form>
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="exampleInputEmail1" class="form-label">Shop Name</label>
                         <input type="text" class="form-control" v-model="name" autocomplete="name" required>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="exampleInputPassword1" class="form-label">Shop Description</label>
-                        <input type="text" class="form-control" v-model="description" required>
+                        <textarea  class="form-control" rows="5" name="exampleInputPassword" v-model="description" required></textarea>
                     </div>
                 </div>
             </form>
@@ -46,7 +46,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 axios.post('/api/shops',data, { headers:{ 'Authorization': auth_token}})
                 .then((response) => {
                     if(response.data?.status == 200){
-                        this.$emit('addRow',data);
+                        this.$emit('addRow',response.data?.shop);
                         this.name = null;
                         this.description = null;
 

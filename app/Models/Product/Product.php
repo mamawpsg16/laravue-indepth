@@ -12,11 +12,16 @@ class Product extends Model
 
     protected $guarded = ['id'];
     protected $appends = ['product_image'];
+    protected $casts = [
+        'quantity' => 'integer',
+        'price' => 'integer',
+    ];
+
 
     protected function productImage(): Attribute
     {
         return new Attribute(
-            get: fn () => asset('storage/product/images/0ubZTIDktuYSlGMsY1wduq9u8R3qPvamHJpqqu0E.jpg'),
+            get: fn () => asset('storage/product/images/'.$this->image),
         );
     }
 }

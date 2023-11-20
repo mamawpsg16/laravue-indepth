@@ -122,6 +122,11 @@ const routes = [
         name: "shops",
         component: () => import("@/views/Shop/Index.vue"),
     },
+    {
+        path: "/ag-grid",
+        name: "ag-grid",
+        component: () => import("@/views/Practice/AgGrid.vue"),
+    },
 
     /** OPTIONAL PARAMETER ? */
     // { path: '/app/:id/:name?', component: Home },

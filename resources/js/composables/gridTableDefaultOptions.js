@@ -1,6 +1,6 @@
 
 const defaultOptions =  {
-    flex: 1,
+    // flex: 1,
     sortable: true,
     resizable: true,
     // filter: true,

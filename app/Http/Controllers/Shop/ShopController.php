@@ -14,7 +14,7 @@ class ShopController extends Controller
      */
     public function index()
     {
-        $shops = Shop::all();
+        $shops = Shop::orderBy('id', 'desc')->get();
 
         return response()->json(['status' => '200', 'shops' => $shops]);
     }
@@ -26,13 +26,13 @@ class ShopController extends Controller
     {
         $data = $request->validated();
 
-        $store = Shop::create([
+        $shop = Shop::create([
                                 'name' => $data['name'],
                                 'description' => $data['description'],
                                 'user_id' => $request->user()->id,
+                                'active' => 1,
                             ]);
-                            
-        return response()->json(['status' => 200]);
+        return response()->json(['status' => 200 ,'shop' => $shop]);
     }
 
     /**

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignId('shop_id')->nullable()->constrained();
             $table->string('image_name')->nullable();
             $table->string('image')->nullable();
+            $table->integer('active')->default(1);
             $table->timestamps();
             // Add other product columns as needed
         });

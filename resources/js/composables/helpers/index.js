@@ -19,8 +19,7 @@ const numberDefaultOptions = {
 
 export const formatDate = function(locale = undefined, date = '', format="timestamp" ) {
     
-    date = date ? new Date() : new Date(date);
-    console.log(date,'date')
+    date = !date ? new Date() : new Date(date);
     const newOptions = format == 'date' ? dateDefaultOptions : {...dateDefaultOptions, ...timestamp};
 
     return new Intl.DateTimeFormat(locale,newOptions).format(date)

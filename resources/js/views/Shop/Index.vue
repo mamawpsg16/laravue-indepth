@@ -8,13 +8,11 @@
             <!-- <label for="isExportAll">Export All</label> &nbsp; -->
             <!-- <input type="checkbox" v-model="isExportAll" id="isExportAll"> -->
             <!-- <br> -->
-            <div class="text-end mb-2 ">
-                <!-- <button @click="addData">Add Dummy Data</button> -->
-                <div class="space-x-2">
+              <div class="d-flex justify-content-between mb-2">
+                <div id="export">
                     <button class="btn me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length">Export CSV</button>
-                    <!-- <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-shop-modal">
-                        Import
-                    </button> -->
+                </div>
+                <div id="import">
                     <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#create-shop-modal">
                         Create
                     </button>
@@ -35,6 +33,8 @@
                </div>
                <ag-grid-vue
                    domLayout="autoHeight"
+                   style="width:100%"
+                   :rowHeight="rowHeight"
                    class="ag-theme-alpine container mt-2"
                    animateRows="true"
                    :columnDefs="columnDefs"
@@ -69,7 +69,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
         name:'ShopIndex',
         data(){
             return{
-                
+                rowHeight:50,
                 pageSize:10,
                 isExportAll:false,
                 pageSizeOptions: [10, 100, 500, 1000],
@@ -151,6 +151,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 this.gridApi = params.api;
                 this.gridColumnApi = params.columnApi;
                 this.gridApi.paginationSetPageSize(Number(this.pageSize));
+                this.gridApi.sizeColumnsToFit()
             },
             visitShop(data){
                 console.log(data,'Visit');
@@ -213,10 +214,16 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 const worksheet = XLSX.utils.json_to_sheet(rows);
             },
             addData(payload){
-                this.rowData = [
+                const updateData = this.rowData = [
                     payload,
                     ...this.rowData,
                 ];
+                
+                 this.rowData = updateData.map(shop => ({
+                                                            ...shop,
+                                                            created_at: formatDate(undefined,shop.created_at,'timestamp'),
+                                                            status: shop.active === 1 ? 'Active' : 'Inactive'
+                                                        }));
             },
             updateData(payload){
                   try {
