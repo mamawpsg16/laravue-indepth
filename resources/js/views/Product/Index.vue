@@ -189,8 +189,8 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             handleExport(){
                 if(this.selectedExportOption != null){
                     const selectedMethod = this.exportOptions[this.selectedExportOption].method;
-                    console.log(selectedMethod,'selectedMethod')
                      this[selectedMethod]();
+                     this.selectedExportOption = ""
                 }
             },
             addData(payload){

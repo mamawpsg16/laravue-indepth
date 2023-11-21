@@ -10,7 +10,13 @@
             <!-- <br> -->
               <div class="d-flex justify-content-between mb-2">
                 <div id="export">
-                    <button class="btn me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length">Export CSV</button>
+                     <div class="d-flex justify-content-center align-items-center">
+                        <select class="form-select" v-model="selectedExportOption" @change="handleExport">
+                            <option  value="" disabled selected>Export Options</option>
+                            <option  v-for="(option,index) in exportOptions" :value="index" :key="index">{{ option.name }}</option>
+                        </select>
+                    </div>
+                    <!-- <button class="btn me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length">Export CSV</button> -->
                 </div>
                 <div id="import">
                     <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#create-shop-modal">
@@ -99,7 +105,18 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 },
                 file:null,
                 image: image1,
-                shop_id:null
+                shop_id:null,
+                selectedExportOption:"",
+                exportOptions:[
+                    {
+                        name:'CSV',
+                        method:"exportCsv"
+                    },
+                    // {
+                    //     name:'EXCEL',
+                    //     method:"exportExcel"
+                    // },
+                ],
             }
         },
         components: {
@@ -216,6 +233,15 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             },
             exportExcel(){
                 const worksheet = XLSX.utils.json_to_sheet(rows);
+            },
+            handleExport(){
+                if(this.selectedExportOption != null ){
+                    console.log('PASOK')
+                    const selectedMethod = this.exportOptions[this.selectedExportOption].method;
+                    console.log(selectedMethod);
+                    this[selectedMethod]();
+                    this.selectedExportOption = ""
+                }
             },
             addData(payload){
                 const updateData = this.rowData = [
