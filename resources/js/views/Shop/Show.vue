@@ -1,24 +1,29 @@
 <template>
      <Modal  class="modal-lg" targetModal="edit-shop-modal" :modaltitle="`${name} - Shop Details`" :backdrop="true" :escKey="false">
         <template #body>
-            <Edit :shop="shop" v-if="edit" @updated="changeState" :updateData="update"/>
-            <form v-else>
-                <div class="d-flex flex-column mb-2">
-                    <div class="col-6 mx-auto text-center mb-2">
-                        <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
+            <template v-if="isLoading">
+               <LoadingSpinner/>
+            </template>
+            <template v-else>
+                <Edit :shop="shop" v-if="edit" @updated="changeState" :updateData="update"/>
+                <form v-else>
+                    <div class="d-flex flex-column mb-2">
+                        <div class="col-6 mx-auto text-center mb-2">
+                            <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-6">
-                        <label for="exampleInputEmail1" class="form-label">Shop Name</label>
-                        <p type="text" >{{ name }}</p>
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="exampleInputEmail1" class="form-label">Shop Name</label>
+                            <p type="text" >{{ name }}</p>
+                        </div>
+                        <div class="col-6">
+                            <label for="exampleInputPassword1" class="form-label">Shop Description</label>
+                            <p type="text" >{{ description }}</p>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <label for="exampleInputPassword1" class="form-label">Shop Description</label>
-                        <p type="text" >{{ description }}</p>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </template>
         </template>
         <template #footer>
             <div id="view" v-if="edit">
@@ -38,6 +43,7 @@
 import Edit from './Edit.vue';
 import Modal from '@/components/Modal/modal.vue';
 import { swalSuccess, swalError, Swal  } from '@/composables/sweetAlert.js';
+import LoadingSpinner from '@/components/Loaders/Spinner.vue';
 import axios from 'axios';
 const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
@@ -55,15 +61,18 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 edit:false,
                 update:false,
                 image:false,
-                shop:[]
+                shop:[],
+                isLoading:false
             }
         },
         components: {
             Modal,
-            Edit
+            Edit,
+            LoadingSpinner
         },
         methods:{
             getShopDetails(){
+                this.isLoading = true;
                 axios.get(`api/shops/${this.shopId}`,{ headers:{ 'Authorization': auth_token}})
                 .then(response=>{
                     const { status, shop, message } = response.data;
@@ -72,6 +81,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                         this.name = shop.name;
                         this.description = shop.description;
                         this.image = shop.shop_image;
+                        this.isLoading = false;
                     }
                 }).catch(error =>{
 

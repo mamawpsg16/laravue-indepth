@@ -1,32 +1,37 @@
 <template>
     <Modal class="modal-lg" targetModal="show-product-modal" :modaltitle="`${name} - Details`">
         <template #body>
-            <Edit :product="product" :updateData="update" v-if="edit" @updated="changeState"/>
-            <form id="shop" v-else>
-                <div class="d-flex flex-column mb-2">
-                    <div class="col-6 mx-auto text-center mb-2">
-                        <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
+            <template v-if="isLoading">
+               <LoadingSpinner/>
+            </template>
+            <template v-else>
+                <Edit :product="product" :updateData="update" v-if="edit" @updated="changeState"/>
+                <form id="shop" v-else>
+                    <div class="d-flex flex-column mb-2">
+                        <div class="col-6 mx-auto text-center mb-2">
+                            <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-6">
-                      <label for="exampleInputEmail1" class="form-label">Name</label>
-                      <p>{{ name }}</p>
+                    <div class="row">
+                        <div class="col-6">
+                        <label for="exampleInputEmail1" class="form-label">Name</label>
+                        <p>{{ name }}</p>
+                        </div>
+                        <div class="col-6">
+                        <label for="exampleInputEmail1" class="form-label">Price</label>
+                        <p>{{ price }}</p>
+                        </div>
+                        <div class="col-6">
+                        <label for="exampleInputEmail1" class="form-label">Quantity</label>
+                        <p>{{ quantity }}</p>
+                        </div>
+                        <div class="col-6 d-flex flex-column">
+                            <label for="exampleInputPassword1" class="form-label">Description</label>
+                            <p>{{ description }}</p>
+                        </div>
                     </div>
-                    <div class="col-6">
-                      <label for="exampleInputEmail1" class="form-label">Price</label>
-                      <p>{{ price }}</p>
-                    </div>
-                    <div class="col-6">
-                      <label for="exampleInputEmail1" class="form-label">Quantity</label>
-                       <p>{{ quantity }}</p>
-                    </div>
-                    <div class="col-6 d-flex flex-column">
-                        <label for="exampleInputPassword1" class="form-label">Description</label>
-                        <p>{{ description }}</p>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </template>
             
         </template>
         <template #footer>
@@ -43,6 +48,7 @@
 </template>
 
 <script>
+import LoadingSpinner from '@/components/Loaders/Spinner.vue'
 import Modal from '@/components/Modal/modal.vue';
 import Edit from './Edit.vue';
 import { swalSuccess, swalError  } from '@/composables/sweetAlert.js';
@@ -61,15 +67,18 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 file:null,
                 edit:false,
                 update:false,
+                isLoading:false,
                 product:[]
             }
         },
         components:{
             Modal,
-            Edit
+            Edit,
+            LoadingSpinner
         },
         methods:{
             async getProductDetails(){
+                this.isLoading = true;
                 await axios.get(`/api/products/${this.productId}`,{
                         headers:{
                             'Authorization' : auth_token
@@ -83,6 +92,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                         this.price = product.price,
                         this.quantity = product.quantity,
                         this.image = product.product_image
+                        this.isLoading = false;
                     }
                 }).catch(error =>{
 
