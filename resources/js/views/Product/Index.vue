@@ -1,27 +1,35 @@
 <template>
     <Import @addRow="addData"/>
     <Create @addRow="addData"/>
-    <Show :details="product_details" @updateRow="updateData"/>
+    <Show :productId="product_id" @updateRow="updateData"/>
     <div class="row">
         <div class="col-10 mx-auto my-2">
             <!-- <label for="isExportAll">Export All</label> &nbsp; -->
             <!-- <input type="checkbox" v-model="isExportAll" id="isExportAll"> -->
             <!-- <br> -->
                 <!-- <button @click="addData">Add Dummy Data</button> -->
-            <div class="d-flex justify-content-between mb-2">
-                <div id="export">
-                    <button class="btn btn-secondary me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Csv</button>
-                    <button class="btn btn-secondary me-2" @click="exportExcel" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Excel</button>
+            <div class="row">
+                <div class="d-flex justify-content-between mb-2">
+                    <div id="export">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <select class="form-select" v-model="selectedExportOption" @change="handleExport">
+                                <option  value="" disabled selected>Export Options</option>
+                                <option  v-for="(option,index) in exportOptions" :value="index" :key="index">{{ option.name }}</option>
+                            </select>
+                        </div>
+                        <!-- <button class="btn btn-secondary me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Csv</button>
+                        <button class="btn btn-secondary me-2" @click="exportExcel" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Excel</button> -->
+                    </div>
+                    <div id="import">
+                        <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-product-modal">
+                            Import
+                        </button>
+                        <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#create-product-modal">
+                            Create
+                        </button>
+                    </div>
                 </div>
-                <div id="import">
-                    <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-product-modal">
-                        Import
-                    </button>
-                    <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#create-product-modal">
-                        Create
-                    </button>
-                </div>
-           </div>
+            </div>
            <div class="row">
                <div class="d-flex justify-content-between" @submitEvent="getDetails">
                    <div id="pageSizeContainer">
@@ -77,6 +85,17 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 isExportAll:false,
                 pageSizeOptions: [10, 100, 500, 1000],
                 paginationNumberFormatter: null,
+                selectedExportOption:"",
+                exportOptions:[
+                    {
+                        name:'CSV',
+                        method:"exportCsv"
+                    },
+                    {
+                        name:'EXCEL',
+                        method:"exportExcel"
+                    },
+                ],
                 columnDefs: [
                 //    {
                 //         headerName: "Image",
@@ -100,7 +119,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 gridApi:null,
                 gridColumnApi:null,
                 globalSearchFilter:null,
-                product_details:null
+                product_id:null
             }
         },
         components: {
@@ -167,6 +186,13 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 const data = this.rowData.map(({ id, ...rest}) => rest);
                 Export(data);
             },
+            handleExport(){
+                if(this.selectedExportOption != null){
+                    const selectedMethod = this.exportOptions[this.selectedExportOption].method;
+                    console.log(selectedMethod,'selectedMethod')
+                     this[selectedMethod]();
+                }
+            },
             addData(payload){
                 if(payload == 'import'){
                     this.getProducts();
@@ -189,10 +215,10 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 }
           
             },
-            showProduct(params){
+            viewProduct(params){
                 const id = document.getElementById('show-product-modal');
                 const modal = bootstrap.Modal.getOrCreateInstance(id);
-                this.product_details = params;
+                this.product_id = params.id;
                 modal.show();
             },
             deleteShop(id){

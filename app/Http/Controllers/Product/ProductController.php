@@ -60,9 +60,13 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Product $product)
     {
-        //
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        
+        return response()->json(['status' => 200, 'product' => $product->toArray()]);
     }
 
     /**

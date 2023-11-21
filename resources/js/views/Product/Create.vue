@@ -1,7 +1,7 @@
 <template>
     <Modal class="modal-lg" targetModal="create-product-modal" modaltitle="Create">
         <template #body>
-            <form id="shop">
+            <form id="product">
                 <div class="d-flex flex-column mb-2">
                     <div class="col-6 mx-auto text-center mb-2">
                         <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
@@ -80,7 +80,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 this.quantity = null;
                 this.image = null;
                 this.file = null;
-                document.getElementById("shop").reset();
+                document.getElementById("product").reset();
             },
             saveProduct(){
                 const formData = new FormData();

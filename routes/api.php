@@ -21,6 +21,7 @@ Route::group(['middleware' =>['auth:sanctum']], function(){
     Route::get('/user', [AuthenticationController::class, 'tokenVerification'])->middleware('user.authenticated');
     Route::resource('products', ProductController::class);
     Route::post('/importProducts',[ProductController::class,'import']);
-    Route::post('/updateProducts/{product}',[ProductController::class,'update']);
+    Route::post('/updateProduct/{product}',[ProductController::class,'update']);
     Route::resource('shops', ShopController::class);
+    Route::post('/updateShop/{shop}',[ShopController::class,'update']);
 });

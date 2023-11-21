@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Shop;
 
-use App\Http\Requests\Shop\StoreRequest;
-use App\Http\Controllers\Controller;
 use App\Models\Shop\Shop;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\Shop\StoreRequest;
 use App\Http\Requests\Shop\UpdateRequest;
+
 class ShopController extends Controller
 {
     /**
@@ -25,11 +27,23 @@ class ShopController extends Controller
     public function store(StoreRequest $request)
     {
         $data = $request->validated();
+        $file_name = '';
+        $hashed_name = '';
+
+        if($request->hasFile('image')){
+            $file = $request->file('image');
+            $file_name = $file->getClientOriginalName();
+            // $hash_name = 'image'.uniqid().date("Y-m-d"); // Generate a unique, random name...
+            $hashed_name = $file->hashName();
+            $image_path = $file->storeAs('shop/images',$hashed_name,'public');
+        }
 
         $shop = Shop::create([
                                 'name' => $data['name'],
                                 'description' => $data['description'],
                                 'user_id' => $request->user()->id,
+                                'image_name' => $file_name,
+                                'image' => $hashed_name,
                                 'active' => 1,
                             ]);
         return response()->json(['status' => 200 ,'shop' => $shop]);
@@ -38,9 +52,14 @@ class ShopController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Shop $shop)
     {
-        //
+        if (!$shop) {
+            return response()->json(['message' => 'Shop not found'], 404);
+        }
+
+        return response()->json(['status' => 200 ,'shop' => $shop]);
+
     }
 
     /**
@@ -53,12 +72,31 @@ class ShopController extends Controller
         }
         $data = $request->validated();
 
-        $shop->update([
-            'name' => $data['name'],
-            'description' => $data['description'],
-        ]);
+        $file_name = '';
+        $hashed_name = '';
+        $file_path = "shop/images/".$shop->image;
+        
+        if($request->hasFile('image')){
+    
+            if (Storage::disk('public')->exists($file_path)) {
+                Storage::disk('public')->delete($file_path);
+            }
 
-        return response()->json(['status' => 200, 'message' => 'Shop updated successfully', 'data' => $shop]);
+            $file = $request->file('image');
+            $file_name = $file->getClientOriginalName();
+            // $hash_name = 'image'.uniqid().date("Y-m-d"); // Generate a unique, random name...
+            $hashed_name = $file->hashName();
+            $image_path = $file->storeAs('shop/images',$hashed_name,'public');
+        }
+
+        $shop->update([
+                            'name' => $data['name'],
+                            'description' => $data['description'],
+                            'image_name' => !$request->hasFile('image') ? $shop->image_name : $file_name,
+                            'image' => !$request->hasFile('image') ? $shop->image : $hashed_name
+                        ]);
+
+        return response()->json(['status' => 200, 'message' => 'Shop updated successfully', 'shop' => $shop->toArray()]);
     }
 
     /**

@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- <button @click="visitProduct" class="btn btn-sm btn-primary me-2">Visit</button> -->
-        <button class="btn btn-sm btn-primary me-2" @click="showProduct">View</button>
+        <button class="btn btn-sm btn-primary me-2" @click="viewProduct">View</button>
         <button @click="deleteProduct" class="btn btn-sm btn-danger me-2">Delete</button>
     </div>
 </template>
@@ -9,8 +9,8 @@
 <script>
     export default {
         methods: {
-            showProduct() {
-                this.params.context.componentParent.showProduct(this.params.data)
+            viewProduct() {
+                this.params.context.componentParent.viewProduct(this.params.data)
             },
             // editProduct() {
             //     this.params.context.componentParent.viewProduct(this.params.data)

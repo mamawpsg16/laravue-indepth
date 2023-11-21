@@ -1,41 +1,42 @@
 <template>
-    <Modal class="modal-lg" targetModal="show-product-modal" :modaltitle="`${this.product?.name} - Details`">
+    <Modal class="modal-lg" targetModal="show-product-modal" :modaltitle="`${name} - Details`">
         <template #body>
-            <form id="shop" v-if="!edit">
+            <Edit :product="product" :updateData="update" v-if="edit" @updated="changeState"/>
+            <form id="shop" v-else>
                 <div class="d-flex flex-column mb-2">
                     <div class="col-6 mx-auto text-center mb-2">
-                        <img :src="this.product?.image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
+                        <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-6">
                       <label for="exampleInputEmail1" class="form-label">Name</label>
-                      <p>{{ this.product?.name }}</p>
+                      <p>{{ name }}</p>
                     </div>
                     <div class="col-6">
                       <label for="exampleInputEmail1" class="form-label">Price</label>
-                      <p>{{ this.product?.price }}</p>
+                      <p>{{ price }}</p>
                     </div>
                     <div class="col-6">
                       <label for="exampleInputEmail1" class="form-label">Quantity</label>
-                       <p>{{ this.product?.quantity }}</p>
+                       <p>{{ quantity }}</p>
                     </div>
                     <div class="col-6 d-flex flex-column">
                         <label for="exampleInputPassword1" class="form-label">Description</label>
-                        <p>{{ this.product?.description }}</p>
+                        <p>{{ description }}</p>
                     </div>
                 </div>
             </form>
-            <Edit :details="product" :updateData="update" v-else @updated="changeState"/>
+            
         </template>
         <template #footer>
-            <div id="view" v-if="!edit">
-                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" @click="editProduct">Edit</button>
-            </div>
-            <div  v-else>
+            <div id="view" v-if="edit">
                 <button type="button" class="btn btn-danger me-2" @click="cancelEdit">Cancel</button>
                 <button type="button" class="btn btn-primary" @click="updateProduct">Update</button>
+            </div>
+            <div  v-else>
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" @click="editProduct">Edit</button>
             </div>
         </template>
     </Modal>
@@ -49,18 +50,18 @@ import axios from 'axios';
 const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
         name:'Show Product',
-        props:['details'],
+        props:['productId'],
         data(){
             return {
-                // name :null,
-                // description :null,
-                // price :null,
-                // quantity :null,
-                // image:null,
+                name :null,
+                description :null,
+                price :null,
+                quantity :null,
+                image:null,
                 file:null,
                 edit:false,
                 update:false,
-                product:[],
+                product:[]
             }
         },
         components:{
@@ -68,6 +69,25 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             Edit
         },
         methods:{
+            async getProductDetails(){
+                await axios.get(`/api/products/${this.productId}`,{
+                        headers:{
+                            'Authorization' : auth_token
+                        }
+                }).then(response=>{
+                    const {status, product} = response.data; 
+                    if(status== 200){
+                        this.product = product;
+                        this.name = product.name,
+                        this.description = product.description,
+                        this.price = product.price,
+                        this.quantity = product.quantity,
+                        this.image = product.product_image
+                    }
+                }).catch(error =>{
+
+                })
+            },
             editProduct(){
                 this.edit = true;
             },
@@ -80,29 +100,21 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             },
             changeState(data){
                 this.$emit('updateRow',data);
-                this.product = {
-                    id: data?.id,
-                    name : data?.name,
-                    description : data?.description,
-                    price : data?.price,
-                    quantity : data?.quantity,
-                    image : data?.product_image
-                }
+                this.product = data;
+                this.name = data.name,
+                this.description = data.description,
+                this.price = data.price,
+                this.quantity = data.quantity,
+                this.image = data.product_image
                 this.update = false;
                 this.edit = false;
             }
         },
           watch: {
-            // whenever question changes, this function will run
-            details(data) {
-                this.product = {
-                    id: data?.id,
-                    name : data?.name,
-                    description : data?.description,
-                    price : data?.price,
-                    quantity : data?.quantity,
-                    image : data?.product_image
-                }
+            productId(id) {
+                console.log(id,'watcher id')
+                this.getProductDetails();
+                
                 this.edit = false;
                 this.update = false
 

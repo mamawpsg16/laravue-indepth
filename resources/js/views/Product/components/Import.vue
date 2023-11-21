@@ -106,7 +106,6 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             this.paginationNumberFormatter = (params) => {
                 return '[' + params.value.toLocaleString() + ']';
             };
-
             
         },
         methods:{
@@ -120,7 +119,6 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 this.gridApi = params.api;
                 this.gridColumnApi = params.columnApi;
                 this.gridApi.paginationSetPageSize(Number(this.pageSize));
-                this.gridApi.sizeColumnsToFit()
             },
             resetForm() {
                 this.rowData = [];

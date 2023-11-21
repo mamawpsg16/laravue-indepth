@@ -1,25 +1,24 @@
 <template>
-     <Modal  class="modal-lg" targetModal="edit-shop-modal" modaltitle="Edit - Shop Details" :backdrop="true" :escKey="false">
-        <template #body>
-            <form>
-                <div class="row">
-                    <div class="col-6">
-                        <label for="exampleInputEmail1" class="form-label">Shop Name</label>
-                        <input type="text" class="form-control" v-model="name" autocomplete="name" required>
-                    </div>
-                    <div class="col-6">
-                        <label for="exampleInputPassword1" class="form-label">Shop Description</label>
-                        <textarea  class="form-control" rows="5" name="exampleInputPassword" v-model="description" required></textarea>
-                    </div>
-                </div>
-            </form>
-
-        </template>
-        <template #footer>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="closeModal">Close</button>
-            <button type="button" class="btn btn-primary" @click.prevent="updateConfirmation">Update</button>
-        </template>
-    </Modal>
+    <form>
+        <div class="d-flex flex-column mb-2">
+            <div class="col-6 mx-auto text-center mb-2">
+                <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
+            </div>
+            <div class="col-4 mx-auto">
+                <input class="form-control" type="file" id="formFile" @change="uploadImage" accept="image/png, image/jpeg">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <label for="exampleInputEmail1" class="form-label">Shop Name</label>
+                <input type="text" class="form-control" v-model="name" autocomplete="name" required>
+            </div>
+            <div class="col-6">
+                <label for="exampleInputPassword1" class="form-label">Shop Description</label>
+                <textarea  class="form-control" rows="5" name="exampleInputPassword" v-model="description" required></textarea>
+            </div>
+        </div>
+    </form>
 </template>
 
 <script>
@@ -32,33 +31,55 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
     export default {
         name:'Shop Edit',
         props:{
-            details:{
+            shop:{
                 type:[Array,Object],
                 default:[]
+            },
+            updateData:{
+                type:[Boolean]
             }
         },
         data(){
             return{
                 name: null,
                 description: null,
+                file:null,
+                image:null
             }
         },
         components: {
             Modal
         },
         methods:{
-            update(){
-                 const data = {name:this.name, description: this.description};
-                axios.put(`/api/shops/${this.details.id}`,data, { headers:{ 'Authorization': auth_token}})
+            uploadImage(e){
+                const file = e.target.files[0];
+                this.file = file;
+                if (file) {
+                    // Use FileReader to read the file as a data URL
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        this.image = reader.result; // Set the imageUrl to the data URL
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    this.image = this.image1; // Reset imageUrl if no file is selected
+                }
+            },
+            updateShop(){
+                const formData = new FormData();
+                formData.append('image',this.file);
+                formData.append('name',this.name);
+                formData.append('description',this.description);
+                axios.post(`/api/updateShop/${this.shop.id}`,formData, { headers:{ 'Authorization': auth_token}})
                 .then((response) => {
-                    if(response.data?.status == 200){
-                        this.$emit('updateRow',response.data?.data);
+                    const { shop, status, message } = response.data
+                    if(status == 200){
+                        this.$emit('updated',shop);
                 
-
                         swalSuccess({ 
                             icon: 'success',
                             text: 'Updated!',
-                            title: response.data?.message,
+                            title:message,
                             showConfirmButton: false,
                         })
                         
@@ -83,7 +104,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     confirmButtonText: "Confirm",
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        this.update()
+                        this.updateShop()
                     } else if (result.isDenied) {
                         Swal.fire("Changes are not saved", "", "info");
                     }
@@ -102,10 +123,22 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             }
         },
         watch: {
-            details(updatedDetails) {
-                if(updatedDetails){
-                    this.name = updatedDetails.name
-                    this.description = updatedDetails.description
+            shop: {
+                handler(data) {
+                    console.log('WTF');
+                    this.name = data.name
+                    this.description = data.description
+                    this.image = data.shop_image
+                    // this will be run immediately on component creation.
+                },
+                // force eager callback execution
+                immediate: true
+            },
+            updateData:{
+                handler(data){
+                    if(data){
+                        this.updateConfirmation();
+                    }
                 }
             }
         },

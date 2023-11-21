@@ -1,5 +1,5 @@
 <template>
-        <form id="shop">
+        <form id="product">
             <div class="d-flex flex-column mb-2">
                 <div class="col-6 mx-auto text-center mb-2">
                     <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
@@ -31,14 +31,15 @@
 
 <script>
 import Modal from '@/components/Modal/modal.vue';
-import { swalSuccess, swalError  } from '@/composables/sweetAlert.js';
+import { swalSuccess, swalError, Swal  } from '@/composables/sweetAlert.js';
 import axios from 'axios';
 const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
         name:'Edit Product',
-        props:['details','updateData'],
+        props:['product','updateData'],
         data(){
             return {
+                id :null,
                 name :null,
                 description :null,
                 price :null,
@@ -52,8 +53,8 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             Modal
         },
         methods:{
+          
             uploadImage(e){
-                // e.preventDefault()
                 const file = e.target.files[0];
                 this.file = file;
                 if (file) {
@@ -74,32 +75,31 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 this.quantity = null;
                 this.image = null;
                 this.file = null;
-                document.getElementById("shop").reset();
+                document.getElementById("product").reset();
             },
             updateProduct(){
                 const formData = new FormData();
                 formData.append('image',this.file);
-                // formData.append('product',JSON.stringify(this.product));
                 formData.append('name',this.name);
                 formData.append('description',this.description);
                 formData.append('price',this.price);
                 formData.append('quantity',this.quantity);
-                axios.post(`/api/updateProducts/${this.details.id}`,formData,{
-                // axios.put(`/api/products/${this.details.id}`,formData,{
+                axios.post(`/api/updateProduct/${this.product.id}`,formData,{
                         headers:{
                             'Authorization' : auth_token
                         }
                 })
                 .then((response) => {
-                    if(response.data?.status == 200){
+                    const { status, product, message } = response.data;
+                    if(status == 200){
                         this.resetForm();
-                        this.$emit('updated',response.data?.product);
+                        this.$emit('updated',product);
                         // this.$emit('addRow',response.data?.product);
 
                         swalSuccess({ 
                             icon: 'success',
                             text: 'You can now set your product!',
-                            title: response.data?.message,
+                            title: message,
                             showConfirmButton: false,
                         })
                         
@@ -108,17 +108,31 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 .catch(function (error) {
                     console.log(error);
                 });
-            }
+            },
+            updateConfirmation(data){
+                Swal.fire({
+                    title: "Are you sure?",
+                    text:"Update Product",
+                    showCancelButton: true,
+                    confirmButtonText: "Confirm",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.updateProduct()
+                    } else if (result.isDenied) {
+                        Swal.fire("Changes are not saved", "", "info");
+                    }
+                });
+            },
         },
         watch: {
             // whenever question changes, this function will run
-            details: {
+            product: {
                 handler(data) {
-                     this.name = data?.name;
-                    this.description = data?.description;
-                    this.price = data?.price;
-                    this.quantity = data?.quantity;
-                    this.image = data?.image;
+                    this.name = data.name;
+                    this.description = data.description;
+                    this.price = data.price;
+                    this.quantity = data.quantity;
+                    this.image = data.product_image;
                     // this will be run immediately on component creation.
                 },
                 // force eager callback execution
@@ -128,7 +142,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 handler(data) {
                     if(data){
                         this.update = data;
-                        this.updateProduct()
+                        this.updateConfirmation()
                     }
                 },
                 // force eager callback execution

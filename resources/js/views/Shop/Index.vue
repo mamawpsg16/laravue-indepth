@@ -1,7 +1,7 @@
 <template>
     <!-- <Import/> -->
     <Create @addRow="addData"/>
-    <Edit @updateRow="updateData" :details="editDetails"/>
+    <Show @updateRow="updateData" :shopId="shop_id"/>
    
     <div class="row">
         <div class="col-10 mx-auto my-2">
@@ -37,6 +37,7 @@
                    :rowHeight="rowHeight"
                    class="ag-theme-alpine container mt-2"
                    animateRows="true"
+                   
                    :columnDefs="columnDefs"
                    :rowData="rowData"
                    :defaultColDef="defaultColDef"
@@ -53,7 +54,7 @@
 
 <script>
 import Create from './Create.vue';
-import Edit from './Edit.vue';
+import Show from './Show.vue';
 import defaultOptions from '@/composables/gridTableDefaultOptions.js';
 import image1 from '../../../assets/images/1.png'
 import actionButton from './components/ActionButton.vue';
@@ -98,7 +99,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 },
                 file:null,
                 image: image1,
-                editDetails:[]
+                shop_id:null
             }
         },
         components: {
@@ -106,7 +107,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             actionButton,
             Modal,
             Create,
-            Edit
+            Show
         },
         computed:{
             globalSearchValue(){
@@ -153,13 +154,16 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 this.gridApi.paginationSetPageSize(Number(this.pageSize));
                 this.gridApi.sizeColumnsToFit()
             },
+            onFirstDataRendered(params) {
+                params.api.sizeColumnsToFit();
+            },
             visitShop(data){
                 console.log(data,'Visit');
             },
-            editShop(data){
+            viewShop(data){
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('edit-shop-modal'));
 
-                this.editDetails = data;
+                this.shop_id = data.id;
                 // Show the modal
                 modal.show();
 
@@ -225,13 +229,19 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                                                             status: shop.active === 1 ? 'Active' : 'Inactive'
                                                         }));
             },
-            updateData(payload){
+            updateData(shop){
                   try {
-                    const index = this.rowData.findIndex(item => item.id === payload.id);
+                    console.log(shop);
+                    const index = this.rowData.findIndex(item => item.id === shop.id);
 
                     // Create a copy of the array and update the specific element
                     const updatedRowData = [...this.rowData];
-                    updatedRowData[index] = { ...payload };
+
+                    updatedRowData[index] = { 
+                                ...shop,
+                                created_at: formatDate(undefined,shop.created_at,'timestamp'),
+                                status: shop.active === 1 ? 'Active' : 'Inactive'
+                    }
 
                     // Update the original array
                     this.rowData = updatedRowData;

@@ -20,8 +20,14 @@ class Product extends Model
 
     protected function productImage(): Attribute
     {
+        $asset =  $this->image ? "/product/images/".$this->image : "/default/no_image.png";
         return new Attribute(
-            get: fn () => asset('storage/product/images/'.$this->image),
+            get: fn () => asset("storage".$asset),
         );
+    }
+
+    public function setDescriptionAttribute($value)
+    {
+       $this->attributes['description'] = $value == "null" ? '' : $value;
     }
 }

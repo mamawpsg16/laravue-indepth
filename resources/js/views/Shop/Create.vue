@@ -1,7 +1,15 @@
 <template>
      <Modal class="modal-lg" targetModal="create-shop-modal" modaltitle="Create - Shop Details" :backdrop="true" :escKey="false">
         <template #body>
-            <form>
+            <form id="shop">
+                <div class="d-flex flex-column mb-2">
+                    <div class="col-6 mx-auto text-center mb-2">
+                        <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
+                    </div>
+                    <div class="col-4 mx-auto">
+                        <input class="form-control" type="file" id="formFile" @change="uploadImage" accept="image/png, image/jpeg">
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-6">
                         <label for="exampleInputEmail1" class="form-label">Shop Name</label>
@@ -35,20 +43,38 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             return{
                 name: null,
                 description: null,
+                file:null,
+                image:null
             }
         },
         components: {
             Modal
         },
         methods:{
+            uploadImage(e){
+                const file = e.target.files[0];
+                this.file = file;
+                if (file) {
+                    // Use FileReader to read the file as a data URL
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        this.image = reader.result; // Set the imageUrl to the data URL
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    this.image = this.image1; // Reset imageUrl if no file is selected
+                }
+            },
             store(){
-                const data = {name:this.name, description: this.description};
-                axios.post('/api/shops',data, { headers:{ 'Authorization': auth_token}})
+                const formData = new FormData();
+                 formData.append('image',this.file);
+                 formData.append('name',this.name);
+                 formData.append('description',this.description);
+                axios.post('/api/shops',formData, { headers:{ 'Authorization': auth_token}})
                 .then((response) => {
                     if(response.data?.status == 200){
                         this.$emit('addRow',response.data?.shop);
-                        this.name = null;
-                        this.description = null;
+                        this.resetForm()
 
                         swalSuccess({ 
                             icon: 'success',
@@ -73,6 +99,9 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             resetForm(){
                 this.name = null;
                 this.description = null;
+                this.image = null;
+                this.file = null;
+                document.getElementById("shop").reset();
             },
             closeModal(){
                 this.resetForm();

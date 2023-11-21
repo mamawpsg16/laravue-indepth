@@ -23,7 +23,7 @@ class UpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', Rule::unique('shops')->ignore($this->shop->id),'min:3','max:50'],
-            'description' => ['sometimes','nullable','min:10','max:200']
+            'description' => ['sometimes','nullable']
         ];
     }
 }
