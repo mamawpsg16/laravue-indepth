@@ -79,6 +79,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
         methods:{
             async getProductDetails(){
                 this.isLoading = true;
+                console.log(this.isLoading);
                 await axios.get(`/api/products/${this.productId}`,{
                         headers:{
                             'Authorization' : auth_token

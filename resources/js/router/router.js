@@ -4,12 +4,13 @@
 // import Page404 from '@/views/PageError/NotFound.vue'
 // import UserSettings from '@/views/Practice/NamedRouterView/UserSettings.vue'
 // import UserEmailSubscription from '@/views/Practice/NamedRouterView/UserEmailSubscription.vue'
-// import UserProfile from '@/views/Practice/NamedRouterView/UserProfile.vue'
-// import UserProfileDetails from '@/views/Practice/NamedRouterView/UserProfileDetails.vue'
+import UserProfile from '@/views/Practice/NamedRouterView/UserProfile.vue'
+import Dashboard from '@/views/Practice/Dashboard.vue'
 const About = { template: "<div>About</div>" };
-const Dashboard = { template: "<div>Dashboard</div>" };
+// const Dashboard = { template: "<div>Dashboard</div>" };
 const Posts = { template: "<div>Posts</div>" };
-
+import { defineAsyncComponent } from 'vue'
+import LoadingSpinner from '@/components/Loaders/Spinner.vue'
 // 2. Define some routes
 // Each route should map to a component.
 // We'll talk about nested routes later.
@@ -23,12 +24,12 @@ const routes = [
         path: "/",
         name: "home",
         redirect: "/dashboard",
-        component: Dashboard,
+        component: () =>  import("@/views/Practice/Dashboard.vue"),
     },
     {
         path: "/dashboard",
         name: "/dashboard",
-        component: Dashboard,
+        component: () =>  import("@/views/Practice/Dashboard.vue"),
     },
     {
         path: "/settings",
@@ -106,6 +107,22 @@ const routes = [
         path: "/products",
         name: "products",
         component: () => import("@/views/Product/Index.vue"),
+        // component: () => defineAsyncComponent({
+        //   displayName: 'Product',
+        //   // the loader function
+        //   loader: () => import("@/views/Product/Index.vue"),
+        
+        //   // A component to use while the async component is loading
+        //   loadingComponent: LoadingSpinner,
+        //   // Delay before showing the loading component. Default: 200ms.
+        //   delay: 0,
+        
+        //   // // A component to use if the load fails
+        //   // errorComponent: ErrorComponent,
+        //   // // The error component will be displayed if a timeout is
+        //   // // provided and exceeded. Default: Infinity.
+        //   // timeout: 3000
+        // }),
     },
     {
         path: "/register",

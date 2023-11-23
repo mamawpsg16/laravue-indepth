@@ -1,10 +1,14 @@
 import { createRouter,createWebHistory } from "vue-router";
 import routes from './router.js'
 import { isUserAuthenticated } from "../composables/authentication.js";
+import LoadingSpinner from '@/components/Loaders/Spinner.vue'
 const router = createRouter({
     // 4. Provide the history implementation to use. We are using the hash history for simplicity here.
     history: createWebHistory(),
     routes, // short for `routes: routes`
+    components: {
+        LoadingSpinner,
+    }
 })
 // GOOD
 // This is a navigation guard in Vue Router. It runs before each navigation.

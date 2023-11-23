@@ -15,5 +15,7 @@ export default function importData(data = []) {
         blankrows:false
     });
 
+    console.log(template_details);
+
     return template_details;
 }

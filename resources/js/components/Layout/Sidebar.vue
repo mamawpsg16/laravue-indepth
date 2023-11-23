@@ -1,5 +1,5 @@
 <template>
-    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar vh-100">
+    <nav v-if="store.layout.sidebar" id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar vh-100">
         <div class="position-sticky">
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -17,8 +17,16 @@
 </template>
 
 <script>
+import { useLayoutStore } from '@/pinia/useLayoutStore.js';
     export default {
-        
+        data(){
+            return{
+                store : null
+            }
+        },
+        created(){
+            this.store =  useLayoutStore()
+        }
     }
 </script>
 

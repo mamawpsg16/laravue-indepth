@@ -52,6 +52,7 @@
                    :context="context" 
                    :paginationNumberFormatter="paginationNumberFormatter"
                    @grid-ready="onGridReady"
+                   :overlayLoadingTemplate="overlayLoadingTemplate"
                    :rowHeight="rowHeight"
                    :pagination="true"
                >
@@ -64,6 +65,7 @@
 <script>
 import defaultOptions from '@/composables/gridTableDefaultOptions.js';
 import actionButton from './components/ActionButton.vue';
+import LoadingSpinner from '@/components/Loaders/Spinner.vue';
 import Modal from '@/components/Modal/modal.vue';
 import { AgGridVue } from "ag-grid-vue3";
 import "ag-grid-community/styles/ag-grid.css";
@@ -119,7 +121,8 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 gridApi:null,
                 gridColumnApi:null,
                 globalSearchFilter:null,
-                product_id:null
+                product_id:null,
+                overlayLoadingTemplate: null,
             }
         },
         components: {
@@ -128,7 +131,8 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             Import,
             Modal,
             Create,
-            Show
+            Show,
+            LoadingSpinner
             // image
         },
         computed:{
@@ -137,6 +141,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             }
         },
         async created(){
+            this.overlayLoadingTemplate = LoadingSpinner;
             await this.getProducts();
             this.paginationNumberFormatter = (params) => {
                 return '[' + params.value.toLocaleString() + ']';

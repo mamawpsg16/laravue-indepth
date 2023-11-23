@@ -22,12 +22,10 @@ class AuthenticationController extends Controller
             $request->session()->regenerate();
             $token = $request->user()->createToken('authenticate')->plainTextToken;
 
-            return response()->json(['status'=> 200,'authentication_token' => $token]);
+            return response()->json(['status'=> 200,'authentication_token' => $token, 'message' => '']);
+        }else{
+            return response()->json(['status'=> 404,'message' => 'Incorrect username or password, Please try again.']);
         }
- 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
     }
 
     public function register(RegisterRequest $request)
@@ -54,5 +52,12 @@ class AuthenticationController extends Controller
         ];
 
         return $data;
+    }
+
+    public function logout(Request $request){
+        
+        $request->user()->tokens()->delete();
+
+        return response()->json(['status' => 200]);
     }
 }

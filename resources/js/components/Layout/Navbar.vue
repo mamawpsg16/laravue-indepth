@@ -1,5 +1,5 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav  v-if="store.layout.navbar" class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <button
             class="navbar-toggler"
@@ -20,7 +20,8 @@
                     <li class="nav-item" v-if="!authenticated">
                         <router-link to="/login" class="nav-link">Login</router-link>
                     </li>
-                    <li class="nav-item">{{ authenticated.data?.email }}</li>
+                    <li class="nav-item me-2">{{ authenticated.data?.email }}</li>
+                    <li class="nav-item"><button class="btn btn-secondary btn-sm" @click="logout">Logout</button></li>
                     <!-- Add more navigation items as needed -->
                 </ul>
             </div>
@@ -29,8 +30,42 @@
 </template>
 
 <script>
+import { useLayoutStore } from '@/pinia/useLayoutStore.js';
+import axios from 'axios';
+import { useRouter,useRoute } from 'vue-router';
+const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
-        props:['authenticated']
+        props:['authenticated'],
+        data(){
+            return{
+                store : null,
+                router: useRouter()
+            }
+        },
+        created(){
+            this.store =  useLayoutStore()
+        },
+        methods:{
+            async logout(){
+                await axios.post('/api/logout',{},{
+                    headers:{
+                        'Authorization': auth_token
+                    }
+                }).then(response =>{
+                    const { status } = response.data;
+                    if(status == 200){
+                        console.log(status);
+                        localStorage.removeItem('auth-token');
+
+                        this.router.push({name:"login"})
+                        
+                    }
+
+                }).catch(error =>{
+                    
+                })
+            }
+        }
     }
 </script>
 
