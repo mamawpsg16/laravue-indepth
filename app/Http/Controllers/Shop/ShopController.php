@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Models\Shop\Shop;
 use Illuminate\Http\Request;
+use App\Services\Shop\ShopService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Shop\StoreRequest;
@@ -11,6 +12,10 @@ use App\Http\Requests\Shop\UpdateRequest;
 
 class ShopController extends Controller
 {
+    private $shopService;
+    public function __construct(){
+        $this->shopService = new ShopService();
+    }
     /**
      * Display a listing of the resource.
      */
@@ -26,40 +31,24 @@ class ShopController extends Controller
      */
     public function store(StoreRequest $request)
     {
-        $data = $request->validated();
-        $file_name = '';
-        $hashed_name = '';
+        $shop = $this->shopService->store($request);
 
-        if($request->hasFile('image')){
-            $file = $request->file('image');
-            $file_name = $file->getClientOriginalName();
-            // $hash_name = 'image'.uniqid().date("Y-m-d"); // Generate a unique, random name...
-            $hashed_name = $file->hashName();
-            $image_path = $file->storeAs('shop/images',$hashed_name,'public');
-        }
-
-        $shop = Shop::create([
-                                'name' => $data['name'],
-                                'description' => $data['description'],
-                                'user_id' => $request->user()->id,
-                                'image_name' => $file_name,
-                                'image' => $hashed_name,
-                                'active' => 1,
-                            ]);
         return response()->json(['status' => 200 ,'shop' => $shop]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Shop $shop)
-    {
+    public function show($id)
+    {   
+        $shop = Shop::with(['location','contactInformation'])->findOrFail($id);
+
+
         if (!$shop) {
             return response()->json(['message' => 'Shop not found'], 404);
         }
 
         return response()->json(['status' => 200 ,'shop' => $shop]);
-
     }
 
     /**

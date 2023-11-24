@@ -6,7 +6,8 @@
             </template>
             <template v-else>
                 <Edit :shop="shop" v-if="edit" @updated="changeState" :updateData="update"/>
-                <form v-else>
+                <Details v-else :shop="shop"/>
+                <!-- <form v-else>
                     <div class="d-flex flex-column mb-2">
                         <div class="col-6 mx-auto text-center mb-2">
                             <img :src="image" class="rounded  img-fluid img-thumbnail" style="width:300px;" alt="">
@@ -22,7 +23,7 @@
                             <p type="text" >{{ description }}</p>
                         </div>
                     </div>
-                </form>
+                </form> -->
             </template>
         </template>
         <template #footer>
@@ -41,6 +42,7 @@
 <script>
 
 import Edit from './Edit.vue';
+import Details from './Details.vue';
 import Modal from '@/components/Modal/modal.vue';
 import { swalSuccess, swalError, Swal  } from '@/composables/sweetAlert.js';
 import LoadingSpinner from '@/components/Loaders/Spinner.vue';
@@ -68,7 +70,8 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
         components: {
             Modal,
             Edit,
-            LoadingSpinner
+            LoadingSpinner,
+            Details
         },
         methods:{
             getShopDetails(){

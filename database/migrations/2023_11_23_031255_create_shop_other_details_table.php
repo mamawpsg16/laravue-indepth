@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('shop_other_details', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('shop_id')->cascadeOnDelete();
             $table->string('facebook')->nullable();
             $table->string('twitter')->nullable();
             $table->string('instagram')->nullable();

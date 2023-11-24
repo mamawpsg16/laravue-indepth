@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('shop_locations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shop_id')->onDelete('cascade');
+            $table->foreignId('shop_id')->cascadeOnDelete('cascade');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
             $table->string('address')->nullable();

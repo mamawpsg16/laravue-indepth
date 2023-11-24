@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Product;
 
 use Illuminate\Http\Request;
 use App\Models\Product\Product;
-use App\Services\ProductService;
+use App\Services\Product\ProductService;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -13,9 +13,9 @@ use App\Http\Requests\Product\UpdateRequest;
 
 class ProductController extends Controller
 {
-    private $uploadService;
+    private $productService;
     public function __construct(){
-        $this->uploadService = new ProductService();
+        $this->productService = new ProductService();
     }
     /**
      * Display a listing of the resource.
@@ -31,29 +31,8 @@ class ProductController extends Controller
      */
     public function store(StoreRequest $request)
     {
+        $product = $this->productService->store($request);
 
-        $data = $request->validated();
-
-        $file_name = '';
-        $hashed_name = '';
-        if($request->hasFile('image')){
-            $file = $request->file('image');
-            $file_name = $file->getClientOriginalName();
-            // $hash_name = 'image'.uniqid().date("Y-m-d"); // Generate a unique, random name...
-            $hashed_name = $file->hashName();
-            $image_path = $file->storeAs('product/images',$hashed_name,'public');
-        }
-
-
-        $product = Product::create([
-                            'name' => $data['name'],
-                            'description' => $data['description'],
-                            'quantity' => $data['quantity'],
-                            'price' => $data['price'],
-                            'image_name' => $file_name,
-                            'image' => $hashed_name,
-                            'active' => 1,
-                        ]);
         return response()->json(['status' => 200, 'message' => 'Product added successfully', 'product' => $product->toArray()]);
     }
 
@@ -79,32 +58,7 @@ class ProductController extends Controller
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        $data = $request->validated();
-
-        $file_name = '';
-        $hashed_name = '';
-        $file_path = "product/images/".$product->image;
-        
-        if($request->hasFile('image')){
-    
-            if (Storage::disk('public')->exists($file_path)) {
-                Storage::disk('public')->delete($file_path);
-            }
-
-            $file = $request->file('image');
-            $file_name = $file->getClientOriginalName();
-            // $hash_name = 'image'.uniqid().date("Y-m-d"); // Generate a unique, random name...
-            $hashed_name = $file->hashName();
-            $image_path = $file->storeAs('product/images',$hashed_name,'public');
-        }
-        $product->update([
-                            'name' => $data['name'],
-                            'description' => $data['description'],
-                            'quantity' => $data['quantity'],
-                            'price' => $data['price'],
-                            'image_name' => !$request->hasFile('image') ? $product->image_name : $file_name,
-                            'image' => !$request->hasFile('image') ? $product->image : $hashed_name
-                        ]);
+        $this->productService->update($request, $product);
                         
         return response()->json(['status' => 200, 'message' => 'Product added successfully', 'product' => $product->toArray()]);
     }
@@ -118,19 +72,13 @@ class ProductController extends Controller
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        $file_path = "product/images/".$product->image;
-
-        if (Storage::disk('public')->exists($file_path)) {
-            Storage::disk('public')->delete($file_path);
-        }
-
-        $product->delete();
+        $this->productService->destroy($product);
 
         return response()->json(['status' => 200, 'message' => 'Product deleted successfully']);
     }
 
 
     public function import(Request $request){
-        return $this->uploadService->upload($request);
+        return $this->productService->upload($request);
     }
 }

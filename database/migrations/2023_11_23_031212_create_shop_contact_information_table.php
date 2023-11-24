@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('shop_contact_information', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shop_id')->onDelete('cascade');
+            $table->foreignId('shop_id')->cascadeOnDelete('cascade');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->timestamps();
