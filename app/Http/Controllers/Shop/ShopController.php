@@ -43,11 +43,9 @@ class ShopController extends Controller
     {   
         $shop = Shop::with(['location','contactInformation'])->findOrFail($id);
 
-
         if (!$shop) {
             return response()->json(['message' => 'Shop not found'], 404);
         }
-
         return response()->json(['status' => 200 ,'shop' => $shop]);
     }
 

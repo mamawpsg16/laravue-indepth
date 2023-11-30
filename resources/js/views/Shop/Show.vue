@@ -32,7 +32,7 @@
                 <button type="button" class="btn btn-primary" @click="updateShop">Update</button>
             </div>
             <div  v-else>
-                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary me-2" @click="resetForm" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" @click="editShop">Edit</button>
             </div>
         </template>
@@ -47,6 +47,7 @@ import Modal from '@/components/Modal/modal.vue';
 import { swalSuccess, swalError, Swal  } from '@/composables/sweetAlert.js';
 import LoadingSpinner from '@/components/Loaders/Spinner.vue';
 import axios from 'axios';
+import { useChageWizardState } from '@/pinia/useChageWizardState.js';
 const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
     export default {
@@ -64,7 +65,8 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 update:false,
                 image:false,
                 shop:[],
-                isLoading:false
+                isLoading:false,
+                store:useChageWizardState()
             }
         },
         components: {
@@ -109,6 +111,9 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 this.edit = false;
                 this.update = false;
             },
+            resetForm(){
+                this.store.wizard_reset = true;
+            }
         },
         watch: {
             shopId(id) {
@@ -122,6 +127,9 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
             }
         },
+        beforeUnmount(){
+            console.log('UNMOUNT')
+        }
     }
 </script>
 

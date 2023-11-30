@@ -26,6 +26,7 @@
 import Modal from '@/components/Modal/modal.vue';
 import { swalSuccess, swalError, Swal  } from '@/composables/sweetAlert.js';
 import axios from 'axios';
+import { useChageWizardState } from '@/pinia/useChageWizardState.js';
 const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
     export default {
@@ -44,11 +45,21 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 name: null,
                 description: null,
                 file:null,
-                image:null
+                image:null,
+                store:useChageWizardState()
             }
         },
         components: {
             Modal
+        },
+        created() {
+            this.$nextTick(() => {
+            // Now you can safely access this.$refs
+            // if(this.store.wizard_reset){
+            //     this.resetForm();
+            // }
+            console.log('RESET FORM');
+            });
         },
         methods:{
             uploadImage(e){
@@ -113,6 +124,10 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             resetForm(){
                 this.name = null;
                 this.description = null;
+                console.log(this.$refs);
+                // this.$refs.formWizard.reset()
+                this.v$.$reset()
+
             },
             closeModal(){
                 // this.resetForm();
@@ -140,7 +155,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                         this.updateConfirmation();
                     }
                 }
-            }
+            },
         },
     }
 </script>

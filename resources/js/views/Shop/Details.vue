@@ -94,6 +94,44 @@
                 </div>
             </div>
         </tab-content>
+        <tab-content>
+            <div class="row">
+                <div class="col-12">
+                    <label for="exampleInputEmail1" class="form-label">Address</label>
+                    <p type="text" >{{ address }}</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">City</label>
+                    <p type="text" >{{ city }}</p>
+                </div>
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">State</label>
+                    <p type="text" >{{ state }}</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">Country</label>
+                    <p type="text" >{{ country }}</p>
+                </div>
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">Zip Code</label>
+                    <p type="text" >{{ zip_code }}</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">Latitude</label>
+                    <p type="text" >{{ latitude }}</p>
+                </div>
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">Longitude</label>
+                    <p type="text" >{{ longitude }}</p>
+                </div>
+            </div>
+        </tab-content>
     </form-wizard>
 </template>
 
@@ -101,7 +139,9 @@
 
 import Modal from '@/components/Modal/modal.vue';
 import { swalSuccess, swalError, Swal  } from '@/composables/sweetAlert.js';
+import { useChageWizardState } from '@/pinia/useChageWizardState.js';
 import axios from 'axios';
+
 import {FormWizard, TabContent} from 'vue3-form-wizard'
 const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
@@ -143,13 +183,27 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     tiktok:null,
                     shipping_policy:null,
                     returns_policy:null,
-                }
+                },
+                store:useChageWizardState()
             }
         },
+        
         components: {
             Modal,
             FormWizard,
             TabContent,
+        },
+        created() {
+            console.log('CREATED');
+            this.$nextTick(() => {
+            // Now you can safely access this.$refs
+            // if(this.store.wizard_reset){
+            //     this.resetForm();
+            // }
+            });
+        },
+        mounted(){
+            console.log('MOUNTED')
         },
         methods:{
             uploadImage(e){
@@ -214,6 +268,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             resetForm(){
                 this.name = null;
                 this.description = null;
+                this.$refs.formWizard.reset()
             },
             closeModal(){
                 // this.resetForm();
@@ -238,12 +293,8 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     this.country = data?.location?.country;
                     this.zip_code = data?.location?.zip_code;
                     if(data){
-                        data?.contact_information?.forEach(contact_details => {
-                            console.log(this.$data,'this.$data');
-                            Object.keys(this.contact_information).forEach(key => console.log(key))
-                        });
+                        this.contact_information = data.contact_information;
                     }
-                    // this will be run immediately on component creation.
                 },
                 // force eager callback execution
                 immediate: true
@@ -254,7 +305,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                         this.updateConfirmation();
                     }
                 }
-            }
+            },
         },
     }
 </script>
