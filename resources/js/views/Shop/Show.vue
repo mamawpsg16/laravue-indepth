@@ -1,5 +1,5 @@
 <template>
-     <Modal  class="modal-lg" targetModal="edit-shop-modal" :modaltitle="`${name} - Shop Details`" :backdrop="true" :escKey="false">
+     <Modal  class="modal-lg" targetModal="edit-shop-modal" :modaltitle="`${name}`" :backdrop="true" :escKey="false">
         <template #body>
             <template v-if="isLoading">
                <LoadingSpinner/>
@@ -29,7 +29,6 @@
         <template #footer>
             <div id="view" v-if="edit">
                 <button type="button" class="btn btn-danger me-2" @click="cancelEdit">Cancel</button>
-                <button type="button" class="btn btn-primary" @click="updateShop">Update</button>
             </div>
             <div  v-else>
                 <button type="button" class="btn btn-secondary me-2" @click="resetForm" data-bs-dismiss="modal">Close</button>

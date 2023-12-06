@@ -45,7 +45,7 @@
                     <p type="text" >{{ zip_code }}</p>
                 </div>
             </div>
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-6">
                     <label for="exampleInputEmail1" class="form-label">Latitude</label>
                     <p type="text" >{{ latitude }}</p>
@@ -53,85 +53,43 @@
                 <div class="col-6">
                     <label for="exampleInputEmail1" class="form-label">Longitude</label>
                     <p type="text" >{{ longitude }}</p>
+                </div>
+            </div> -->
+        </tab-content>
+        <tab-content>
+            <div class="row"  v-for="(contact,index) in contact_information" :key="index">
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">Email</label>
+                    <p type="text" >{{ contact.email }}</p>
+                </div>
+                <div class="col-6">
+                    <label for="exampleInputEmail1" class="form-label">Phone</label>
+                    <p type="text" >{{ contact.phone }}</p>
                 </div>
             </div>
         </tab-content>
         <tab-content>
-            <div class="row">
-                <div class="col-12">
-                    <label for="exampleInputEmail1" class="form-label">Address</label>
-                    <p type="text" >{{ address }}</p>
+                <div  class="row" >
+                    <div v-for="(social, index) in other_details" 
+                        :key="index"
+                        :class="{'col-6': !['shipping_policy','returns_policy'].includes(index), 
+                                'col-12': ['shipping_policy','returns_policy'].includes(index)}">
+                        <template v-if="!except.includes(index)">
+                            <label for="exampleInputEmail1" class="form-label">{{ transformToPascalCase(index)}}</label>
+                            <p type="text" >{{ other_details[index] }}</p>
+                        </template>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">City</label>
-                    <p type="text" >{{ city }}</p>
-                </div>
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">State</label>
-                    <p type="text" >{{ state }}</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Country</label>
-                    <p type="text" >{{ country }}</p>
-                </div>
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Zip Code</label>
-                    <p type="text" >{{ zip_code }}</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Latitude</label>
-                    <p type="text" >{{ latitude }}</p>
-                </div>
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Longitude</label>
-                    <p type="text" >{{ longitude }}</p>
-                </div>
-            </div>
         </tab-content>
-        <tab-content>
-            <div class="row">
-                <div class="col-12">
-                    <label for="exampleInputEmail1" class="form-label">Address</label>
-                    <p type="text" >{{ address }}</p>
-                </div>
+        <template v-slot:footer="props">
+            <div class="wizard-footer-left">
+                <wizard-button  v-if="props.activeTabIndex > 0 && !props.isLastStep" @click.native="props.prevTab()" :style="props.fillButtonStyle">Previous</wizard-button>
+                <wizard-button  v-if="props.isLastStep" @click.native="props.prevTab()" :style="props.fillButtonStyle">Previous</wizard-button>
             </div>
-            <div class="row">
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">City</label>
-                    <p type="text" >{{ city }}</p>
-                </div>
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">State</label>
-                    <p type="text" >{{ state }}</p>
-                </div>
+            <div class="wizard-footer-right">
+               <wizard-button v-if="!props.isLastStep" @click.native="props.nextTab()" class="wizard-footer-right" :style="props.fillButtonStyle">Next</wizard-button>
             </div>
-            <div class="row">
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Country</label>
-                    <p type="text" >{{ country }}</p>
-                </div>
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Zip Code</label>
-                    <p type="text" >{{ zip_code }}</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Latitude</label>
-                    <p type="text" >{{ latitude }}</p>
-                </div>
-                <div class="col-6">
-                    <label for="exampleInputEmail1" class="form-label">Longitude</label>
-                    <p type="text" >{{ longitude }}</p>
-                </div>
-            </div>
-        </tab-content>
+        </template>
     </form-wizard>
 </template>
 
@@ -142,7 +100,7 @@ import { swalSuccess, swalError, Swal  } from '@/composables/sweetAlert.js';
 import { useChageWizardState } from '@/pinia/useChageWizardState.js';
 import axios from 'axios';
 
-import {FormWizard, TabContent} from 'vue3-form-wizard'
+import {FormWizard, WizardButton, TabContent} from 'vue3-form-wizard'
 const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
     export default {
@@ -170,6 +128,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 state: null,
                 country: null,
                 zip_code: null,
+                except:['id', 'shop_id', 'created_at', 'updated_at'],
                 contact_information:[
                     {
                         email:null,
@@ -192,6 +151,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
             Modal,
             FormWizard,
             TabContent,
+            WizardButton
         },
         created() {
             console.log('CREATED');
@@ -205,7 +165,18 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
         mounted(){
             console.log('MOUNTED')
         },
+        computed:{
+
+        },
         methods:{
+            transformToPascalCase(text){
+                let transformedText = "";
+                const arrayString = text.split("_");
+                for (const word of arrayString) {
+                    transformedText += word.at(0).toUpperCase() + word.slice(1) + " ";
+                }
+                return transformedText;
+            },
             uploadImage(e){
                 const file = e.target.files[0];
                 this.file = file;
@@ -276,12 +247,19 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
                 // Hide the modal
                 modal.hide();
+            },
+            isLastStep() {
+                console.log("FS")
+                if (this.$refs.formWizard) {
+                    console.log('SHET')
+                    return this.$refs.formWizard.isLastStep
+                }
+                return false
             }
         },
         watch: {
             shop: {
                 handler(data) {
-                    console.log('WTF');
                     this.name = data.name
                     this.description = data.description
                     this.image = data.shop_image
@@ -294,6 +272,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     this.zip_code = data?.location?.zip_code;
                     if(data){
                         this.contact_information = data.contact_information;
+                        this.other_details = data.other_details;
                     }
                 },
                 // force eager callback execution

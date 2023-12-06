@@ -45,8 +45,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 price :null,
                 quantity :null,
                 image:null,
-                file:null,
-                update:false
+                file:null
             }
         },
         components:{
@@ -141,7 +140,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             updateData: {
                 handler(data) {
                     if(data){
-                        this.update = data;
+                        // this.update = data;
                         this.updateConfirmation()
                     }
                 },

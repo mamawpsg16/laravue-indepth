@@ -1,15 +1,13 @@
 export function checkEmptyColumns(except= [], data){
-    console.log(data,'DATA');
-    console.log(except.includes(''))
     let empty_column = [];
     for (const key in data) {
-        console.log('checkEmptyColumns key', key)
         for (const property in data[key]) {
             if(except.length > 0){
                 for (const exclude of except) {
                     if (property != exclude) {
                         if(data[property] === '' || data[property] == null || data[property] == undefined){
                             empty_column.push(data[property]) 
+                            console.log(empty_column,'1');
                             break;
                         }
                     }
@@ -20,6 +18,9 @@ export function checkEmptyColumns(except= [], data){
                     break;
                 }
             }
+        }
+        if(empty_column.length){
+            break;
         }
     }
     return empty_column;

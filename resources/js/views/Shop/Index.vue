@@ -5,9 +5,6 @@
    
     <div class="row">
         <div class="col-10 mx-auto my-2">
-            <!-- <label for="isExportAll">Export All</label> &nbsp; -->
-            <!-- <input type="checkbox" v-model="isExportAll" id="isExportAll"> -->
-            <!-- <br> -->
               <div class="d-flex justify-content-between mb-2">
                 <div id="export">
                      <div class="d-flex justify-content-center align-items-center">
@@ -16,7 +13,6 @@
                             <option  v-for="(option,index) in exportOptions" :value="index" :key="index">{{ option.name }}</option>
                         </select>
                     </div>
-                    <!-- <button class="btn me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length">Export CSV</button> -->
                 </div>
                 <div id="import">
                     <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#create-shop-modal">
@@ -24,36 +20,20 @@
                     </button>
                 </div>
            </div>
-           <div class="row">
-               <div class="d-flex justify-content-between" @submitEvent="getDetails">
-                   <div id="pageSizeContainer">
-                       Page Size: 
-                       <select v-model="pageSize" @change="onPageSizeChanged">
-                           <option :value="size" v-for="(size, index) in pageSizeOptions" :key="index">{{ size }}</option>
-                       </select>
-                   </div>
-                   <div id="quickFilterContainer">
-                       <span>Quick Filter: </span>
-                       <input type="text" v-model="globalSearchFilter" placeholder="Filter..." @input="onGlobalSearch">
-                   </div>
-               </div>
-               <ag-grid-vue
-                   domLayout="autoHeight"
-                   style="width:100%"
-                   :rowHeight="rowHeight"
-                   class="ag-theme-alpine container mt-2"
-                   animateRows="true"
-                   
-                   :columnDefs="columnDefs"
-                   :rowData="rowData"
-                   :defaultColDef="defaultColDef"
-                   :context="context" 
-                   :paginationNumberFormatter="paginationNumberFormatter"
-                   @grid-ready="onGridReady"
-                   :pagination="true"
-               >
-               </ag-grid-vue>
-           </div>
+            <Dataset :data="data" :columns="columns">
+                <template #body="{ data, index }">
+                    <tr>
+                        <td>{{ data.name }}</td>
+                        <td>{{ data.description }}</td>
+                        <td>{{ data.quantity }}</td>
+                        <td>{{ data.created_at }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-2" @click="viewShop(data.id)">View</button>
+                            <button @click="deleteConfirmation(data.id)" class="btn btn-sm btn-danger me-2">Delete</button>
+                        </td>
+                    </tr>
+                </template>
+            </Dataset>
         </div>
     </div>
 </template>
@@ -61,44 +41,47 @@
 <script>
 import Create from './Create.vue';
 import Show from './Show.vue';
-import defaultOptions from '@/composables/gridTableDefaultOptions.js';
 import image1 from '../../../assets/images/1.png'
-import actionButton from './components/ActionButton.vue';
 import Modal from '@/components/Modal/modal.vue';
-import { AgGridVue } from "ag-grid-vue3";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
 import { formatDate, formatNumber } from '@/composables/helpers/index.js';
 import axios from 'axios';
 import { swalSuccess, swalError, Swal } from '@/composables/sweetAlert.js';
+import Dataset from '@/components/Dataset/Index.vue'
+import { exportExcel, exportCsv} from '@/composables/export/index.js';
 const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
     export default {
         name:'ShopIndex',
         data(){
             return{
-                rowHeight:50,
-                pageSize:10,
                 isExportAll:false,
-                pageSizeOptions: [10, 100, 500, 1000],
-                paginationNumberFormatter: null,
-                columnDefs: [
-                    { headerName: "Name", field: "name", unSortIcon:true},
-                    { headerName: "Description", field: "description", unSortIcon:true },
-                    { headerName: "Created At", field: "created_at", unSortIcon:true },
-                    { headerName: "Status", field: "status", unSortIcon:true },
+                data: [],
+                columns:[
                     {
-                        headerName: "Action",
-                        cellRenderer: "actionButton",
-                    }
-                    
+                        name: 'Name',
+                        field: 'name',
+                        sort: ''
+                    },
+                    {
+                        name: 'Description',
+                        field: 'description',
+                        sort: ''
+                    },
+                    {
+                        name: 'Quantity',
+                        field: 'quantity',
+                        sort: ''
+                    },
+                    {
+                        name: 'Created At',
+                        field: 'created_at',
+                        sort: ''
+                    },
+                    {
+                        name: 'Action',
+                        field: 'action',
+                        sort: ''
+                    },
                 ],
-                rowData: [],
-                defaultColDef: {
-                  ...defaultOptions
-                },
-                gridApi:null,
-                gridColumnApi:null,
-                globalSearchFilter:null,
                 product:{
                     name :null,
                     description :null,
@@ -112,34 +95,24 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                         name:'CSV',
                         method:"exportCsv"
                     },
-                    // {
-                    //     name:'EXCEL',
-                    //     method:"exportExcel"
-                    // },
+                    {
+                        name:'EXCEL',
+                        method:"exportExcel"
+                    },
                 ],
             }
         },
         components: {
-            AgGridVue,
-            actionButton,
             Modal,
             Create,
-            Show
-        },
-        computed:{
-            globalSearchValue(){
-                return this.globalSearchFilter;
-            }
+            Show,
+            Dataset
         },
         async created(){
-            this.paginationNumberFormatter = (params) => {
-                return '[' + params.value.toLocaleString() + ']';
-            };
             await this.getShops();
-
-            
         },
         methods:{
+
             async getShops(){
                 await axios.get('/api/shops',{
                     headers:{
@@ -148,7 +121,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 }).then(response =>{
                     if(response.data?.status == 200){
                         console.log(response,'response')
-                       this.rowData = response.data.shops.map(shop => ({
+                       this.data = response.data.shops.map(shop => ({
                                                             ...shop,
                                                             created_at: formatDate(undefined,shop.created_at,'timestamp'),
                                                             status: shop.active === 1 ? 'Active' : 'Inactive'
@@ -159,32 +132,16 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
 
                 })
             },
-            onPageSizeChanged() {
-                this.gridApi.paginationSetPageSize(Number(this.pageSize));
-            },
-            onGlobalSearch() {
-                this.gridApi.setQuickFilter(this.globalSearchValue);
-            },
-            onGridReady(params) {
-                this.gridApi = params.api;
-                this.gridColumnApi = params.columnApi;
-                this.gridApi.paginationSetPageSize(Number(this.pageSize));
-                this.gridApi.sizeColumnsToFit(params)
-            },
-            onFirstDataRendered(params) {
-                params.api.sizeColumnsToFit();
-            },
-            visitShop(data){
-                console.log(data,'Visit');
-            },
-            viewShop(data){
+
+            viewShop(id){
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('edit-shop-modal'));
 
-                this.shop_id = data.id;
+                this.shop_id = id;
                 // Show the modal
                 modal.show();
 
             },
+
             deleteShop(id){
                 axios.delete(`/api/shops/${id}`,
                 { 
@@ -194,7 +151,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 })
                 .then(response =>{
                     if(response.data?.status == 200){
-                        this.rowData = this.rowData.filter(item => item.id != id);  
+                        this.data = this.data.filter(item => item.id != id);  
                         swalSuccess({ 
                             icon: 'success',
                             text: 'Shop deleted',
@@ -213,8 +170,8 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     }
                 })
             },
-            deleteConfirmation(data){
-                console.log(data);
+
+            deleteConfirmation(id){
                 Swal.fire({
                     title: "Are you sure?",
                     text:"Delete Shop",
@@ -222,62 +179,69 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     confirmButtonText: "Confirm",
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        this.deleteShop(data.id)
+                        this.deleteShop(id)
                     } else if (result.isDenied) {
                         Swal.fire("Changes are not saved", "", "info");
                     }
                 });
             },
+
             exportCsv() {
-                this.gridApi.exportDataAsCsv({columnKeys:['name','description']});
+                const data = this.data.map(({ id, user_id, active, status, ...rest}) => rest);
+                exportCsv(data)
             },
-            exportExcel(){
-                const worksheet = XLSX.utils.json_to_sheet(rows);
+
+            exportExcel() {
+                const data = this.data.map(({ id,user_id, active, status, ...rest}) => rest);
+                exportExcel(data);
             },
+
             handleExport(){
                 if(this.selectedExportOption != null ){
-                    console.log('PASOK')
                     const selectedMethod = this.exportOptions[this.selectedExportOption].method;
                     console.log(selectedMethod);
                     this[selectedMethod]();
                     this.selectedExportOption = ""
                 }
             },
+            
             addData(payload){
-                const updateData = this.rowData = [
+                const updateData = this.data = [
                     payload,
-                    ...this.rowData,
+                    ...this.data,
                 ];
                 
-                 this.rowData = updateData.map(shop => ({
+                 this.data = updateData.map(shop => ({
                                                             ...shop,
                                                             created_at: formatDate(undefined,shop.created_at,'timestamp'),
                                                             status: shop.active === 1 ? 'Active' : 'Inactive'
                                                         }));
             },
+
             updateData(shop){
                   try {
                     console.log(shop);
-                    const index = this.rowData.findIndex(item => item.id === shop.id);
+                    const index = this.data.findIndex(item => item.id === shop.id);
 
                     // Create a copy of the array and update the specific element
-                    const updatedRowData = [...this.rowData];
+                    const updatedData = [...this.data];
 
-                    updatedRowData[index] = { 
+                    updatedData[index] = { 
                                 ...shop,
                                 created_at: formatDate(undefined,shop.created_at,'timestamp'),
                                 status: shop.active === 1 ? 'Active' : 'Inactive'
                     }
 
                     // Update the original array
-                    this.rowData = updatedRowData;
+                    this.data = updatedData;
                 } catch (error) {
                     console.error('Error updating data:', error);
                 }
             },
+
             uploadImage(e){
                 // e.preventDefault()
-                const file = event.target.files[0];
+                const file = e.target.files[0];
                 this.file = file;
                 if (file) {
                     // Use FileReader to read the file as a data URL
@@ -290,6 +254,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     this.image = this.image1; // Reset imageUrl if no file is selected
                 }
             },
+
             saveProduct(){
                 const formData = new FormData();
                 formData.append('image',this.file);
@@ -306,13 +271,6 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     console.log(error);
                 });
             }
-        },
-        beforeMount() {
-            this.context = {
-                componentParent: this
-            }
-        },
-        mounted() {
         },
     }
 </script>

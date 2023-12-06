@@ -14,15 +14,4 @@ class ShopLocation extends Model
     {
         return $this->belongsTo(Shop::class);
     }
-
-    public function setLongitudeAttribute($value)
-    {
-       $data = $this->attributes['longitude'] = $value == "null" ? null : $value;
-    }
-    public function setLatitudeAttribute($value)
-    {
-       $this->attributes['latitude'] = $value == "null" ? null : $value;
-    }
-
-
 }

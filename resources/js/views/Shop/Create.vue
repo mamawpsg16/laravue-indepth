@@ -90,7 +90,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
+                    <!-- <div class="row">
                         <div class="col-6">
                             <label for="exampleInputPassword1" class="form-label">Latitude</label>
                             <input type="text" class="form-control" v-model="latitude" autocomplete="country" required>
@@ -99,7 +99,7 @@
                             <label for="exampleInputPassword1" class="form-label">Longitude</label>
                             <input type="text" class="form-control" v-model="longitude" autocomplete="zip_code" required>
                         </div>
-                    </div>
+                    </div> -->
                 </TabContent>
                 <TabContent title="Contact Information" icon="fa fa-phone" :before-change="validateContactInformation" >
                     <div class="row mt-2">
@@ -240,8 +240,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     tiktok:null,
                     shipping_policy:null,
                     returns_policy:null,
-                }
-                ,
+                },
             }
         },
         validations () {
@@ -279,21 +278,25 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     this.image = this.image1; // Reset imageUrl if no file is selected
                 }
             },
+
             addContact() {
                 this.contact_information.push({
                     email: null,
                     phone: null,
                 });
             },
+
             deleteContact(index) {
                 this.contact_information.splice(index, 1);
             },
+            
             validateMainDetails: function(){
                 this.v$.name.$touch();
                 this.v$.file.$touch();
                 const isValid = (this.v$.name.$errors.length || this.v$.file.$errors.length) ? false : true;
                 return isValid;
             },
+
             validateLocationInformation: function(){
                 this.v$.address.$touch();
                 this.v$.country.$touch();
@@ -303,6 +306,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 const isValid = (this.v$.address.$errors.length || this.v$.country.$errors.length || this.v$.city.$errors.length || this.v$.zip_code.$errors.length) ? false : true;
                 return isValid;
             },
+
             validateContactInformation: function(){
                 // console.log(this.v$.contact_information,'CONTACT', this.v$.contact_information.length, Object.values(this.v$.contact_information), Object.entries(this.v$.contact_information));
                 for (const contact of Object.values(this.v$.contact_information)) {
@@ -314,6 +318,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 const isValid = (this.v$.contact_information.$silentErrors.length) ? false : true;
                 return isValid;
             },
+
             async store(){
                  if(!await this.v$.$validate()){
                     return;
@@ -364,6 +369,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                     }
                 });
             },
+
             resetForm(){
                 this.name = null;
                 this.description = null;
@@ -390,6 +396,7 @@ const auth_token = `Bearer ${localStorage.getItem('auth-token')}`;
                 this.$refs.formWizard.reset()
                 this.v$.$reset()
             },
+
             closeModal(){
                 this.resetForm();
             }

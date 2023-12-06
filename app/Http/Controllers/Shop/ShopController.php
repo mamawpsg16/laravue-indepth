@@ -41,11 +41,12 @@ class ShopController extends Controller
      */
     public function show($id)
     {   
-        $shop = Shop::with(['location','contactInformation'])->findOrFail($id);
+        $shop = Shop::with(['location','contactInformation','otherDetails'])->findOrFail($id);
 
         if (!$shop) {
             return response()->json(['message' => 'Shop not found'], 404);
         }
+
         return response()->json(['status' => 200 ,'shop' => $shop]);
     }
 
@@ -57,33 +58,12 @@ class ShopController extends Controller
         if (!$shop) {
             return response()->json(['message' => 'Shop not found'], 404);
         }
-        $data = $request->validated();
 
-        $file_name = '';
-        $hashed_name = '';
-        $file_path = "shop/images/".$shop->image;
-        
-        if($request->hasFile('image')){
+       $this->shopService->update($request, $shop);
+       
+       $shop->load(['location', 'contactInformation', 'otherDetails']);
     
-            if (Storage::disk('public')->exists($file_path)) {
-                Storage::disk('public')->delete($file_path);
-            }
-
-            $file = $request->file('image');
-            $file_name = $file->getClientOriginalName();
-            // $hash_name = 'image'.uniqid().date("Y-m-d"); // Generate a unique, random name...
-            $hashed_name = $file->hashName();
-            $image_path = $file->storeAs('shop/images',$hashed_name,'public');
-        }
-
-        $shop->update([
-                            'name' => $data['name'],
-                            'description' => $data['description'],
-                            'image_name' => !$request->hasFile('image') ? $shop->image_name : $file_name,
-                            'image' => !$request->hasFile('image') ? $shop->image : $hashed_name
-                        ]);
-
-        return response()->json(['status' => 200, 'message' => 'Shop updated successfully', 'shop' => $shop->toArray()]);
+        return response(['status' => 200, 'message' => 'Shop updated successfully', 'shop' => $shop->toArray()]);
     }
 
     /**

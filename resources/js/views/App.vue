@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-cloak>
         <!-- Navbar -->
        <Navbar :authenticated="isAuthenticated"/>
         <!-- Sidebar -->
@@ -8,7 +8,7 @@
                 <Sidebar/>
                 <!-- Main content area -->
                 <Main>
-                    <router-view></router-view>
+                    <router-view  ></router-view>
                 </Main>
                 <Footer/>
             </div>
@@ -40,6 +40,8 @@ import { isUserAuthenticated  } from '../composables/authentication.js';
     }
 </script>
 
-<style lang="scss" scoped>
-
+<style scoped>
+[v-cloak] {
+    display:none;
+}
 </style>

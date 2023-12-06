@@ -47,5 +47,4 @@ class Shop extends Model
     {
         $this->attributes['description'] = $value == "null" ? '' : $value;
     }
-
 }

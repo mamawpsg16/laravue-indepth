@@ -5,8 +5,8 @@ const timestamp = {
 };
 
 const dateDefaultOptions = {
-    year: "2-digit",
-    month: "2-digit",
+    year: "numeric",
+    month: "short",
     day: "2-digit",
     hour12: true,
 };

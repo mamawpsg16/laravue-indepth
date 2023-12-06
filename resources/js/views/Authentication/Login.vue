@@ -35,6 +35,17 @@
                 <button type="submit" class="btn btn-primary">Login</button>
             </div>
         </div>
+        <div class="row">
+            <p class="fw-bold">Sign in with :</p>
+            <div class="col-12">
+                <div class="col-4">
+                    <a  class="form-control" href="/auth/google/redirect">Google</a>
+                </div>
+                <div class="col-4">
+                    <a  class="form-control" href="/auth/github/redirect">Github</a>
+                </div>
+            </div>
+        </div>
     </form>
 </template>
 

@@ -8,123 +8,75 @@
                             <input class="form-control" type="file" id="formFile" @change="uploadTemplate" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
                     </div>
                     <div class="col-3">
-                          <button type="button" class="btn btn-sm  form-control" :class="{'btn-danger' : rowData.length >0, 'btn-secondary' : !rowData.length}" :disabled="!rowData.length" @click.prevent="cancelUpload">Cancel</button>
+                          <button type="button" class="btn btn-sm  form-control" :class="{'btn-danger' : data.length >0, 'btn-secondary' : !data.length}" :disabled="!data.length" @click.prevent="cancelUpload">Cancel</button>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-between" @submitEvent="getDetails">
-                            <div id="pageSizeContainer">
-                                <label for="">Page Size: </label>
-                                <select v-model="pageSize" @change="onPageSizeChanged"  class="form-control ">
-                                    <option :value="size" v-for="(size, index) in pageSizeOptions" :key="index">{{ size }}</option>
-                                </select>
-                            </div>
-                            <div id="quickFilterContainer">
-                                <label for="">Quick Filter: </label>
-                                <input type="text" v-model="globalSearchFilter" class="form-control" placeholder="Filter..." @input="onGlobalSearch">
-                            </div>
-                        </div>
-                    </div>
-                    <ag-grid-vue
-                       style="width: 100%; height:519px;"
-                       class="ag-theme-alpine container mt-2"
-                       :columnDefs="columnDefs"
-                       :rowHeight="rowHeight"
-                       :rowData="rowData"
-                       :defaultColDef="defaultColDef"
-                       :context="context" 
-                       :paginationNumberFormatter="paginationNumberFormatter"
-                       @grid-ready="onGridReady"
-                       :pagination="true"
-                   >
-                   </ag-grid-vue>
-                </div>
+                <Dataset :data="data" :columns="columns" @submitEvent="getDetails">
+                    <template #body="{ data, index }">
+                        <tr>
+                            <td>{{ data.name }}</td>
+                            <td>{{ data.price }}</td>
+                            <td>{{ data.quantity }}</td>
+                            <td>{{ data.description }}</td>
+                        </tr>
+                    </template>
+                </Dataset>
             </form>
         </template>
         <template #footer>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelUpload">Close</button>
-            <button type="button" class="btn" @click.prevent="uploadDetails" :class="{'btn-primary' : rowData.length >0, 'btn-secondary' : !rowData.length}" :disabled="!rowData.length">Upload</button>
+            <button type="button" class="btn" @click.prevent="uploadDetails" :class="{'btn-primary' : data.length >0, 'btn-secondary' : !data.length}" :disabled="!data.length">Upload</button>
         </template>
     </Modal>
 </template>
 
 <script>
-import defaultOptions from '@/composables/gridTableDefaultOptions.js';
 import importData  from '@/composables/import/index.js';
-import actionButton from '@/components/AgGridTable/action.vue';
 import Modal from '@/components/Modal/modal.vue';
-import { AgGridVue } from "ag-grid-vue3";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
 import { mapKeys } from '@/composables/import/mapKeys.js';
 import { checkEmptyColumns } from '@/composables/import/validation.js';
 import { swalSuccess,swalError } from '@/composables/sweetAlert.js';
+import Dataset from '@/components/Dataset/Index.vue';
 import axios from 'axios';
 const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
         name:'ImportProduct',
         data(){
             return{
-                rowHeight:50,
-                pageSize:100,
                 isExportAll:false,
-                pageSizeOptions: [10, 100, 500, 1000],
-                paginationNumberFormatter: null,
                 table_fields:['name','price','quantity','description'],
-                columnDefs: [
-                    { headerName: "Name", field: "name", unSortIcon:true },
-                    { headerName: "Price", field: "price", unSortIcon:true },
-                    { headerName: "Quantity", field: "quantity", unSortIcon:true },
-                    { headerName: "Description", field: "description", unSortIcon:true },
-                    // {
-                    //     headerName: "Action",
-                    //     cellRenderer: "actionButton",
-                    // }
-                    
+                columns:[
+                    {
+                        name: 'Name',
+                        field: 'name',
+                        sort: ''
+                    },
+                    {
+                        name: 'Price',
+                        field: 'price',
+                        sort: ''
+                    },
+                    {
+                        name: 'Quantity',
+                        field: 'quantity',
+                        sort: ''
+                    },
+                    {
+                        name: 'Description',
+                        field: 'description',
+                        sort: ''
+                    },
                 ],
-                rowData: [],
-                defaultColDef: {
-                  ...defaultOptions
-                },
-                gridApi:null,
-                gridColumnApi:null,
-                globalSearchFilter:null,
+                data: [],
             }
         },
         components: {
-            AgGridVue,
-            actionButton,
-            Modal
-        },
-        computed:{
-            globalSearchValue(){
-                return this.globalSearchFilter;
-            }
-        },
-        async created(){
-            this.paginationNumberFormatter = (params) => {
-                return '[' + params.value.toLocaleString() + ']';
-            };
-            
+            Modal,
+            Dataset
         },
         methods:{
-            onPageSizeChanged() {
-                this.gridApi.paginationSetPageSize(Number(this.pageSize));
-            },
-            onGlobalSearch() {
-                this.gridApi.setQuickFilter(this.globalSearchValue);
-            },
-            onGridReady(params) {
-                this.gridApi = params.api;
-                this.gridColumnApi = params.columnApi;
-                this.gridApi.paginationSetPageSize(Number(this.pageSize));
-                this.gridApi.sizeColumnsToFit(params)
-            },
             resetForm() {
-                this.rowData = [];
-                this.pageSize = 10;
-                this.globalSearchFilter = null;
+                this.data = [];
                 document.getElementById("import").reset();
             },
             uploadTemplate(event) {
@@ -164,7 +116,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
 
                             return;
                         }
-                        this.rowData = mappedData;
+                        this.data = mappedData;
                     } catch (error) {
                         // Log an error if there's a problem reading the Excel file
                         console.error('Error reading the Excel file:', error);
@@ -181,11 +133,11 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 reader.readAsBinaryString(file);
             },
             uploadDetails(){
-                if(!this.rowData.length){
+                if(!this.data.length){
                     return;
                 }
                 // Convert data to CSV format
-                const csvContent = this.rowData.map(row =>{
+                const csvContent = this.data.map(row =>{
                     return Object.values(row).join('\t');
                 }).join('\n');
           
@@ -214,11 +166,6 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
             },
             cancelUpload(){
                 this.resetForm();
-            }
-        },
-        beforeMount() {
-            this.context = {
-                componentParent: this
             }
         },
 }

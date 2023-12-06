@@ -19,4 +19,8 @@ use App\Http\Controllers\Auth\AuthenticationController;
 
 Route::post('/register',[AuthenticationController::class,'register']);
 Route::post('/login',[AuthenticationController::class,'authenticate']);
+
+Route::get('/auth/{provider}/redirect',[AuthenticationController::class,'authRedirect']);
+Route::get('/auth/{provider}/callback',[AuthenticationController::class,'authCallback']);
+
 Route::get('/{any?}', AppController::class)->where('any', '[\/\w\.-]*');

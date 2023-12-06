@@ -103,7 +103,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 this.edit = true;
             },
             updateProduct(){
-                this.update = true;
+                this.update = Math.random(2) * 2;
             },
             cancelEdit(){
                 this.edit = false;

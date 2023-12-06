@@ -2,7 +2,7 @@
     <Import @addRow="addData"/>
     <Create @addRow="addData"/>
     <Show :productId="product_id" @updateRow="updateData"/>
-    <div class="row">
+    <div class="row" >
         <div class="col-10 mx-auto my-2">
             <!-- <label for="isExportAll">Export All</label> &nbsp; -->
             <!-- <input type="checkbox" v-model="isExportAll" id="isExportAll"> -->
@@ -17,8 +17,8 @@
                                 <option  v-for="(option,index) in exportOptions" :value="index" :key="index">{{ option.name }}</option>
                             </select>
                         </div>
-                        <!-- <button class="btn btn-secondary me-2" @click="exportCsv" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Csv</button>
-                        <button class="btn btn-secondary me-2" @click="exportExcel" :class="{ 'btn-info': rowData.length > 0, 'btn-secondary': !rowData.length}" :disabled="!rowData.length" >Export Excel</button> -->
+                        <!-- <button class="btn btn-secondary me-2" @click="exportCsv" :class="{ 'btn-info': data.length > 0, 'btn-secondary': !data.length}" :disabled="!data.length" >Export Csv</button>
+                        <button class="btn btn-secondary me-2" @click="exportExcel" :class="{ 'btn-info': data.length > 0, 'btn-secondary': !data.length}" :disabled="!data.length" >Export Excel</button> -->
                     </div>
                     <div id="import">
                         <button type="button" class="btn btn-primary text-end me-2" data-bs-toggle="modal" data-bs-target="#import-product-modal">
@@ -30,63 +30,42 @@
                     </div>
                 </div>
             </div>
-           <div class="row">
-               <div class="d-flex justify-content-between" @submitEvent="getDetails">
-                   <div id="pageSizeContainer">
-                       Page Size: 
-                       <select v-model="pageSize" @change="onPageSizeChanged">
-                           <option :value="size" v-for="(size, index) in pageSizeOptions" :key="index">{{ size }}</option>
-                       </select>
-                   </div>
-                   <div id="quickFilterContainer">
-                       <span>Quick Filter: </span>
-                       <input type="text" v-model="globalSearchFilter" placeholder="Filter..." @input="onGlobalSearch">
-                   </div>
-               </div>
-               <ag-grid-vue
-                   style="width: 100%; height:519px;"
-                   class="ag-theme-alpine mt-2"
-                   :columnDefs="columnDefs"
-                   :rowData="rowData"
-                   :defaultColDef="defaultColDef"
-                   :context="context" 
-                   :paginationNumberFormatter="paginationNumberFormatter"
-                   @grid-ready="onGridReady"
-                   :overlayLoadingTemplate="overlayLoadingTemplate"
-                   :rowHeight="rowHeight"
-                   :pagination="true"
-               >
-               </ag-grid-vue>
-           </div>
+            <Dataset :data="data" :columns="columns">
+                <template #body="{ data, index }">
+                    <tr>
+                        <td>{{ data.name }}</td>
+                        <td>{{ data.price }}</td>
+                        <td>{{ data.quantity }}</td>
+                        <td>{{ data.created_at }}</td>
+                        <td>{{ data.status }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-2" @click="viewProduct(data.id)">View</button>
+                            <button @click="deleteConfirmation(data.id)" class="btn btn-sm btn-danger me-2">Delete</button>
+                        </td>
+                    </tr>
+                </template>
+            </Dataset>
         </div>
     </div>
 </template>
 
 <script>
-import defaultOptions from '@/composables/gridTableDefaultOptions.js';
-import actionButton from './components/ActionButton.vue';
 import LoadingSpinner from '@/components/Loaders/Spinner.vue';
 import Modal from '@/components/Modal/modal.vue';
-import { AgGridVue } from "ag-grid-vue3";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
 import Import from './components/Import.vue';
-import Export from '@/composables/export/index.js';
+import { exportExcel, exportCsv} from '@/composables/export/index.js';
 import axios from 'axios';
 import Create from './Create.vue';
 import Show from './Show.vue';
 import { formatDate } from '@/composables/helpers/index.js';
 import { swalSuccess, swalError, Swal } from '@/composables/sweetAlert.js';
+import Dataset from '@/components/Dataset/Index.vue'
 const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
     export default {
         name:'ProductIndex',
         data(){
             return{
-                rowHeight:50,
-                pageSize:10,
                 isExportAll:false,
-                pageSizeOptions: [10, 100, 500, 1000],
-                paginationNumberFormatter: null,
                 selectedExportOption:"",
                 exportOptions:[
                     {
@@ -98,58 +77,57 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                         method:"exportExcel"
                     },
                 ],
-                columnDefs: [
-                //    {
-                //         headerName: "Image",
-                //         cellRenderer: "image",
-                //     },
-                    { headerName: "Name", field: "name", unSortIcon:true},
-                    { headerName: "Price", field: "price", unSortIcon:true},
-                    { headerName: "Quantity", field: "quantity", unSortIcon:true },
-                    { headerName: "Created At", field: "created_at", unSortIcon:true },
-                    { headerName: "Status", field: "status", unSortIcon:true },
+                columns:[
                     {
-                        headerName: "Action",
-                        cellRenderer: "actionButton",
-                    }
-                    
+                        name: 'Name',
+                        field: 'name',
+                        sort: ''
+                    },
+                    {
+                        name: 'Price Name',
+                        field: 'price',
+                        sort: ''
+                    },
+                    {
+                        name: 'Quantity',
+                        field: 'quantity',
+                        sort: ''
+                    },
+                    {
+                        name: 'Created At',
+                        field: 'created_at',
+                        sort: ''
+                    },
+                    {
+                        name: 'Status',
+                        field: 'status',
+                        sort: ''
+                    },
+                    {
+                        name: 'Action',
+                        field: 'action',
+                        sort: ''
+                    },
                 ],
-                rowData: [],
-                defaultColDef: {
-                  ...defaultOptions
-                },
-                gridApi:null,
-                gridColumnApi:null,
-                globalSearchFilter:null,
+                data: [],
                 product_id:null,
-                overlayLoadingTemplate: null,
             }
         },
         components: {
-            AgGridVue,
-            actionButton,
             Import,
             Modal,
             Create,
             Show,
-            LoadingSpinner
-            // image
+            Dataset
         },
         computed:{
-            globalSearchValue(){
-                return this.globalSearchFilter;
-            }
+       
         },
         async created(){
-            this.overlayLoadingTemplate = LoadingSpinner;
             await this.getProducts();
-            this.paginationNumberFormatter = (params) => {
-                return '[' + params.value.toLocaleString() + ']';
-            };
-
-            
         },
         methods:{
+
             async getProducts(){
                 await axios.get('/api/products',{
                     headers:{
@@ -158,7 +136,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 }).then(response =>{
                     if(response.data?.status == 200){
                         console.log(response.data?.products,'response.data?.products')
-                        this.rowData = response.data?.products.map(product => ({
+                        this.data = response.data?.products.map(product => ({
                                                             ...product,
                                                             created_at: formatDate(undefined,product.created_at,'timestamp'),
                                                             status: product.active === 1 ? 'Active' : 'Inactive'
@@ -168,29 +146,17 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
 
                 })
             },
-            onPageSizeChanged() {
-                this.gridApi.paginationSetPageSize(Number(this.pageSize));
-            },
-            onGlobalSearch() {
-                this.gridApi.setQuickFilter(this.globalSearchValue);
-            },
-            onGridReady(params) {
-                console.log(params,'PARAMS')
-                this.gridApi = params.api;
-                this.gridColumnApi = params.columnApi;
-                this.gridApi.paginationSetPageSize(Number(this.pageSize));
-                this.gridApi.sizeColumnsToFit(params)
-            },
-            getRowData(data){
-                console.log(data,'fuckkkk');
-            },
+
             exportCsv() {
-                this.gridApi.exportDataAsCsv({columnKeys:['make','model','price']});
+                const data = this.data.map(({ id, ...rest}) => rest);
+                exportCsv(data)
             },
+
             exportExcel() {
-                const data = this.rowData.map(({ id, ...rest}) => rest);
-                Export(data);
+                const data = this.data.map(({ id, ...rest}) => rest);
+                exportExcel(data);
             },
+
             handleExport(){
                 if(this.selectedExportOption != null){
                     const selectedMethod = this.exportOptions[this.selectedExportOption].method;
@@ -198,6 +164,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                      this.selectedExportOption = ""
                 }
             },
+
             addData(payload){
                 if(payload == 'import'){
                     this.getProducts();
@@ -205,14 +172,14 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                     console.log(payload,'PAYLOAD')
                     console.log([
                         payload,
-                        ...this.rowData,
+                        ...this.data,
                     ],'SHEESH')
-                    const updateData = this.rowData = [
+                    const updateData = this.data = [
                         payload,
-                        ...this.rowData,
+                        ...this.data,
                     ];
                     
-                     this.rowData = updateData.map(product => ({
+                     this.data = updateData.map(product => ({
                                                                 ...product,
                                                                 created_at: formatDate(undefined,product.created_at,'timestamp'),
                                                                 status: product.active === 1 ? 'Active' : 'Inactive'
@@ -220,12 +187,14 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 }
           
             },
-            viewProduct(params){
+
+            viewProduct(product_id){
                 const id = document.getElementById('show-product-modal');
                 const modal = bootstrap.Modal.getOrCreateInstance(id);
-                this.product_id = params.id;
+                this.product_id = product_id;
                 modal.show();
             },
+
             deleteShop(id){
                 axios.delete(`/api/products/${id}`,
                 { 
@@ -235,7 +204,7 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                 })
                 .then(response =>{
                     if(response.data?.status == 200){
-                        this.rowData = this.rowData.filter(item => item.id != id);  
+                        this.data = this.data.filter(item => item.id != id);  
                         swalSuccess({ 
                             icon: 'success',
                             text: 'Product deleted',
@@ -254,7 +223,8 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                     }
                 })
             },
-            deleteConfirmation(data){
+
+            deleteConfirmation(id){
                 Swal.fire({
                     title: "Are you sure?",
                     text:"Delete Product",
@@ -262,37 +232,31 @@ const auth_token = `Bearer ${localStorage.getItem("auth-token")}`;
                     confirmButtonText: "Confirm",
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        this.deleteShop(data.id)
+                        this.deleteShop(id)
                     } else if (result.isDenied) {
                         Swal.fire("Changes are not saved", "", "info");
                     }
                 });
             },
+
             updateData(payload){
-                const index = this.rowData.findIndex(data => data.id === payload.id);
+                const index = this.data.findIndex(data => data.id === payload.id);
                 // Create a copy of the array and update the specific element
-                const updatedRowData = [...this.rowData];
+                const updateddata = [...this.data];
                 
-                updatedRowData[index] = {
+                updateddata[index] = {
                         ...payload,
                         created_at: formatDate(undefined,payload.created_at,'timestamp'),
                         status: payload.active === 1 ? 'Active' : 'Inactive'
                     };
 
-                // Update the original array
-                this.rowData = updatedRowData;
+                this.data = updateddata;
             }
 
-        },
-        beforeMount() {
-            this.context = {
-                componentParent: this
-            }
-        },
-        mounted() {
         },
     }
 </script>
 
 <style scoped>
+
 </style>
